@@ -39,6 +39,8 @@ namespace LearningFucker.Models
         public CourseAppendix Appendix { get; set; }
         public WareDetail Ware { get; set; }
 
+        public Action<Study> StudyComplete;
+
         public int StudyDuration { get; internal set; }
 
         private void AddStudyDuration(int duration)
@@ -74,6 +76,8 @@ namespace LearningFucker.Models
             {
                 timer.Stop();
             }
+
+            this.StudyComplete(this);
             
         }
 
@@ -102,7 +106,7 @@ namespace LearningFucker.Models
             {
                 this.Complete = true;
                 this.Stop();
-            }
+            }            
 
         }
     }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using LearningFucker.Models;
+using LearningFucker.Handler;
 
 namespace LearningFucker
 {
@@ -105,8 +106,8 @@ namespace LearningFucker
                 switch(item)
                 {
                     case 14:
-                        if(IsNeedStudy() && studyProcessing == false)
-                            StartStudy();
+                        TaskForWork taskForWork = new TaskForWork(100, TaskList.List[1], new StudyHandler());
+                        taskForWork.Start(Fucker);
                         break;
                     case 2:
                         break;
@@ -133,53 +134,7 @@ namespace LearningFucker
 
         public async void DoStudy(CourseList list)
         {
-            studyProcessing = true;
-
-            Random random = new Random();
-            int id = random.Next(0, list.List.Count - 1);
-
-            if (list.List[id].Detail != null && list.List[id].Detail.Complete)      //可能会死循环
-            {
-                DoStudy(list);
-                return;
-            }
-
-            var course = list.List[id];
-
-            await Fucker.GetCourseDetail(course);
-            if (course.Detail == null)
-                throw new Exception("获取课程详细信息时出错, 请重新开启程序!");
-            await Fucker.GetCourseAppendix(course);
-            if (course.Appendix == null)
-                throw new Exception("获取课程附加信息时出错, 请重新开启程序!");
-
-            foreach (var item in course.Detail.WareList)
-            {
-                if (stopStudy) return;
-
-                var study = await Fucker.StartStudy(course, item);
-                if (study == null)
-                    throw new Exception("开始学习失败, 请重试!");
-                if (Studies == null)
-                    Studies = new List<Study>();
-
-                Studies.Add(study);
-                study.Start(Fucker);
-                while (!study.Complete)
-                {
-                    await Fucker.GetStudyInfo(study);
-                    if(study.Appendix.MaxStudyIntegral == study.StudyIntegral)  //学习任务结束
-                    {
-                        study.Stop();
-                        StopStudy();
-
-                    }
-                    System.Threading.Thread.Sleep(10000);
-                    if (stopStudy) return;
-                }
-            }
-
-            DoStudy(list);
+            
         }
 
         public async void StartExam()
