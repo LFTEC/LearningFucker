@@ -51,5 +51,23 @@ namespace LearningFucker.Models
         public bool IsHidden { get; set; }
         public int TaskCategory { get; set; }
 
+        public bool IsSelect { get; set; }
+
+        public LearningFucker.Handler.TaskStatus TaskStatus { get; set; }
+        
+
+        public void Clone(Task task)
+        {
+            this.TaskType = task.TaskType;
+            this.Name = task.Name;
+            this.LimitIntegral = task.LimitIntegral;
+            this.Integral = task.Integral;
+            this.Explain = task.Explain;
+            this.Period = task.Period;
+            this.Enabled = task.Enabled;
+            this.IsHidden = task.IsHidden;
+            this.TaskCategory = task.TaskCategory;
+        }
+
     }
 }

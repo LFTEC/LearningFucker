@@ -10,6 +10,7 @@ namespace LearningFucker.Handler
     public class ExamHandler : TaskHandlerBase
     {
         private Models.CourseList courseList;
+        private Exam Exam { get; set; }
 
         public async override void DoWork()
         {
@@ -31,6 +32,14 @@ namespace LearningFucker.Handler
 
         public async void DoExam( Course course, Exam exam, ExamList examList)
         {
+            if(this.TaskStatus == TaskStatus.Stopping)
+            {
+                TaskStatus = TaskStatus.Stopped;
+                TaskForWork.TaskStatus = TaskStatus.Stopped;
+                return;
+            }
+
+            this.Exam = exam;
             await Fucker.GetExamDetail(exam);
             if(exam.ExamDetail == null || exam.ExamDetail.AllowExam == false)
             {
@@ -47,14 +56,27 @@ namespace LearningFucker.Handler
             {
                 var integral = await StartExam(exam);
                 TaskForWork.Integral += integral;
-
+                if(TaskForWork.LimitIntegral <= TaskForWork.Integral)
+                {
+                    this.Complete();
+                }
+                else
+                {
+                    var index = examList.List.IndexOf(exam);
+                    if (index == examList.Count - 1)
+                        DoWork();
+                    else
+                    {
+                        index++;
+                        DoExam(course, examList.List[index], examList);
+                    }
+                }
             }
         }
 
         public async Task<decimal> StartExam(Exam exam)
         {
             DataContext dataContext = new DataContext();
-            bool invalid = false;
             List<Answer> answers = new List<Answer>();
             while(true)
             {
@@ -65,25 +87,21 @@ namespace LearningFucker.Handler
                     return 0;
 
                 var paper = exam.Papers[exam.Papers.Count - 1];
-
+                answers.Clear();
                 foreach (var item in paper.Questions)
                 {
-                    var question = dataContext.GetRow(item.TmID);
-                    if(question == null)
-                    {
-                        invalid = true;
-                        dataContext.InsertRow(item);
+                    var question = await dataContext.GetRow(item.TmID);
+                    Answer answer = new Answer();
+                    answer.TmID = item.TmID;
+                    answers.Add(answer);
 
+                    if (question == null)
+                    {
+                        answer.AnswerContent = "";
                     }
                     else
-                    {
-                        if(!invalid)
-                        {
-                            Answer answer = new Answer();
-                            answer.TmID = item.TmID;
-                            answer.AnswerContent = question.Answers.Replace(";", ",");
-                            answers.Add(answer);
-                        }
+                    {                        
+                        answer.AnswerContent = question.Answers.Replace(";", ",");                        
                     }
                 }
 
@@ -92,18 +110,9 @@ namespace LearningFucker.Handler
 
                 if (await Fucker.GetResult(paper.Result))
                 {
-                    if(paper.Result.Integral == 0)      //答题失败
+                    if(paper.Result.ErrorQuestionCount != 0)      //答题失败
                     {
-                        if(await Fucker.ReviewPaper(paper.Result, exam))
-                        {
-                            foreach(var item in paper.Result.Questions)
-                            {
-                                if(dataContext.GetRow(item.TmID) == null)
-                                {
-                                    dataContext.InsertRow(item);
-                                }
-                            }
-                        }
+                        UpdateQuestionBank(paper.Result);
                         continue;
                     }
                     else
@@ -115,6 +124,28 @@ namespace LearningFucker.Handler
                 {
                     continue;
                 }                
+
+            }
+        }
+
+        private async void UpdateQuestionBank(Result result)
+        {
+            try
+            {
+                DataContext dataContext = new DataContext();
+                if (await Fucker.ReviewPaper(result, Exam))
+                {
+                    foreach (var item in result.Questions)
+                    {
+                        if (await dataContext.GetRow(item.TmID) == null)
+                        {
+                            await dataContext.InsertRow(item);
+                        }
+                    }
+                }
+            }
+            catch(Exception)
+            {
 
             }
         }
@@ -146,12 +177,20 @@ namespace LearningFucker.Handler
 
         public override bool Stop()
         {
-            throw new NotImplementedException();
+            if (TaskStatus == TaskStatus.Working)
+            {
+                TaskStatus = TaskStatus.Stopping;
+                return true;
+            }
+            else
+                return false;
         }
 
         protected override bool Complete()
         {
-            throw new NotImplementedException();
+            TaskStatus = TaskStatus.Completed;
+            TaskForWork.TaskStatus = TaskStatus.Completed;
+            return true;
         }
     }
 }

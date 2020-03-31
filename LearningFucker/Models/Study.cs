@@ -102,6 +102,8 @@ namespace LearningFucker.Models
                 this.Stop();
             }
 
+            if(this.TodayStudyTime * 60 >= this.Course.TotalMinute)
+
             if(this.StudyIntegral == this.Appendix.MaxStudyIntegral)
             {
                 this.Complete = true;

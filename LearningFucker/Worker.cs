@@ -19,15 +19,19 @@ namespace LearningFucker
             timer.Interval = Fucker.POLLING_TIME;
 
             Fucker = new Fucker();
+
+            WorkList = new List<TaskForWork>();
+
+            User = new User();
+            TaskList = new List<Models.Task>();
         }
 
         private Timer timer;
-        private bool stopStudy = false;
         private bool studyProcessing = false;
         public AppInfo AppInfo { get; private set; }
         public Fucker Fucker { get; private set; }
 
-        public TaskList TaskList { get; private set; }
+        public List<LearningFucker.Models.Task> TaskList { get; set; }
         public UserStatistics UserStatistics { get; private set; }
 
         public User User { get; private set; }
@@ -35,6 +39,10 @@ namespace LearningFucker
         public Timer Timer { get => timer; }
 
         public List<Study> Studies { get; set; }
+
+        private List<TaskForWork> WorkList { get; set; }
+
+        public Action<Worker> TaskRefresed;
 
         private async void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
@@ -44,33 +52,31 @@ namespace LearningFucker
                 throw new Exception("获取用户任务完成信息时失败, 请重新打开程序重试!");
             }
 
-            TaskList = await Fucker.GetTaskList("0");
-            if (TaskList == null)
-            {
-                throw new Exception("获取任务信息时失败, 请重新打开程序重试!");
-            }
+            await RefreshTaskList();
 
-            User = await Fucker.GetUserInfo();
-            if (User == null)
-                throw new Exception("用户已失效, 请重新登录;");
+            //var user = await Fucker.GetUserInfo();
+            //if (user == null)
+            //    throw new Exception("用户已失效, 请重新登录;");
 
-            if (!IsNeedStudy() && studyProcessing)
-                this.StopStudy();
+            if (TaskRefresed != null)
+                TaskRefresed(this);
         }
 
         public async Task<bool> Login(string username, string password)
         {
-            User = await Fucker.Login(username, password);
-            if (User == null) return false;
+            var user = await Fucker.Login(username, password);
+            if (user == null) return false;
             else
+            {
+                User.UserId = username;
+                User.Password = password;
+                User.Clone(user);
                 return true;
+            }
         }
 
         public async System.Threading.Tasks.Task Init()
         {
-            User = await Fucker.GetUserInfo();
-            if (User == null)
-                throw new Exception("用户已失效, 请重新登录;");
 
             AppInfo = await Fucker.GetAppInfo();
             if (AppInfo == null)
@@ -78,11 +84,13 @@ namespace LearningFucker
                 throw new Exception("获取App信息时失败, 请重新打开程序重试!");
             }
 
-            TaskList = await Fucker.GetTaskList("0");
-            if(TaskList == null)
+            var taskList = await Fucker.GetTaskList("0");
+            if(taskList == null)
             {
                 throw new Exception("获取任务信息时失败, 请重新打开程序重试!");
             }
+
+            await RefreshTaskList();
 
             UserStatistics = await Fucker.GetMyTaskInfo();
             if(UserStatistics == null)
@@ -90,8 +98,28 @@ namespace LearningFucker
                 throw new Exception("获取用户任务完成信息时失败, 请重新打开程序重试!");
             }
 
-            
+            if (TaskRefresed != null)
+                TaskRefresed(this);
 
+        }
+
+        private async System.Threading.Tasks.Task RefreshTaskList()
+        {
+            var taskList = await Fucker.GetTaskList("0");
+            if (taskList == null)
+            {
+                throw new Exception("获取任务信息时失败, 请重新打开程序重试!");
+            }
+            foreach (var item in taskList.List)
+            {
+                var task = this.TaskList.FirstOrDefault(s => s.TaskType == item.TaskType);
+                if (task == null)
+                {
+                    TaskList.Add(item);
+                }
+                else
+                    task.Clone(item);
+            }
         }
 
         public void StartWork(List<int> tasks, bool parallel)
@@ -106,12 +134,33 @@ namespace LearningFucker
                 switch(item)
                 {
                     case 14:
-                        TaskForWork taskForWork = new TaskForWork(100, TaskList.List[1], new StudyHandler());
-                        taskForWork.Start(Fucker);
+
+                        TaskForWork taskForWork = new TaskForWork(TaskList[1], new StudyHandler());
+                        taskForWork.Completed = new Action<TaskForWork>(WorkItemCompleted);
+                        WorkList.Add(taskForWork);
+
+                        taskForWork = new TaskForWork(TaskList[1], new ExamHandler());
+                        taskForWork.Completed = new Action<TaskForWork>(WorkItemCompleted);
+                        WorkList.Add(taskForWork);
+                        
                         break;
                     case 2:
                         break;
                 }
+            }
+
+            WorkList[0].Start(Fucker);
+        }
+
+        private void WorkItemCompleted(TaskForWork workItem)
+        {
+            var index = WorkList.IndexOf(workItem);
+            if (index == WorkList.Count - 1)
+                return;
+            else
+            {
+                index++;
+                WorkList[index].Start(Fucker);
             }
         }
 
@@ -120,17 +169,7 @@ namespace LearningFucker
 
         }
 
-        public async void StartStudy()
-        {
-            stopStudy = false;
 
-            var courseList = await Fucker.GetCourseList(0, 100);
-            if (courseList == null || courseList.List == null || courseList.List.Count == 0)
-                throw new Exception("获取必修课程清单时出错, 请重新开启程序!");
-
-            DoStudy(courseList);
-
-        }
 
         public async void DoStudy(CourseList list)
         {
@@ -151,27 +190,6 @@ namespace LearningFucker
 
             var examList = await Fucker.GetExamList(course);
 
-        }
-
-        public void StopStudy()
-        {
-            stopStudy = true;
-            studyProcessing = false;
-        }
-
-        private bool IsNeedStudy()
-        {
-            if (TaskList == null || TaskList.List == null || TaskList.List.Count == 0) return false;
-
-            var studyTask = TaskList.List.FirstOrDefault(s => s.TaskType == 14);
-            if (studyTask == null) return false;
-
-            if (!studyTask.Enabled || studyTask.IsHidden) return false;
-
-            if (studyTask.LimitIntegral > studyTask.Integral)
-                return true;
-            else
-                return false;
         }
         
     }

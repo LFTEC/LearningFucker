@@ -10,26 +10,26 @@ namespace LearningFucker
     public class DataContext
     {
 
-        public Question GetRow(int tmid)
+        public async Task<Question> GetRow(int tmid)
         {
             try
             {
                 Question question = new Question();
-                using (MySqlConnection connection = new MySqlConnection(""))
+                using (MySqlConnection connection = new MySqlConnection("Data Source=linux.jcdev.cc;database=learning;Uid=root;Pwd=JC!230jq;"))
                 {
-                    MySqlCommand command = new MySqlCommand("select * from tm where tmid = @tmid", connection);
+                    MySqlCommand command = new MySqlCommand("select * from tm where tmid = @tmid;", connection);
                     MySqlParameter parameter = new MySqlParameter("tmid", tmid);
                     command.Parameters.Add(parameter);
                     command.CommandType = System.Data.CommandType.Text;
                     command.CommandTimeout = 10;
-                    connection.Open();
+                    await connection.OpenAsync();
 
-                    var reader = command.ExecuteReader();
-                    if(reader.HasRows)
+                    var reader = await command.ExecuteReaderAsync();
+                    if (reader.HasRows)
                     {
-                        reader.Read();
-
                         
+                        await reader.ReadAsync();
+
                         question.TmID = Convert.ToInt32(reader["tmid"]);
                         question.TkID = Convert.ToInt32(reader["tkid"]);
                         question.TmSourceType = Convert.ToInt32(reader["type"]);
@@ -44,11 +44,14 @@ namespace LearningFucker
                         question.Remark = Convert.ToString(reader["remark"]);
                         question.Score = Convert.ToDecimal(reader["score"]);
                         reader.Close();
-                        
+                        connection.Close();
+                        return question;
                     }
-
-                    connection.Close();
-                    return question;
+                    else
+                    {
+                        connection.Close();
+                        return null;
+                    }
 
                 }
             }
@@ -59,15 +62,15 @@ namespace LearningFucker
             
         }
 
-        public bool InsertRow(Question question)
+        public async Task<bool> InsertRow(Question question)
         {
             try
             {
-                using (MySqlConnection connection = new MySqlConnection(""))
+                using (MySqlConnection connection = new MySqlConnection("Data Source=linux.jcdev.cc;database=learning;Uid=root;Pwd=JC!230jq;"))
                 {
                     string sql;
-                    sql = @"insert tm values(@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13)";
-                    MySqlCommand command = new MySqlCommand("select * from tm where tmid = @tmid", connection);
+                    sql = @"insert tm values(@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13);";
+                    MySqlCommand command = new MySqlCommand(sql, connection);
                     MySqlParameter parameter = new MySqlParameter("@1", question.TmID);
                     command.Parameters.Add(parameter);
                     parameter = new MySqlParameter("@2", question.TkID);
@@ -96,9 +99,9 @@ namespace LearningFucker
                     command.Parameters.Add(parameter);
                     command.CommandType = System.Data.CommandType.Text;
                     command.CommandTimeout = 10;
-                    connection.Open();
+                    await connection.OpenAsync();
 
-                    var result = command.ExecuteNonQuery();
+                    var result = await command.ExecuteNonQueryAsync();
                     connection.Close();
                     return result == 0 ? true : false;
                 }

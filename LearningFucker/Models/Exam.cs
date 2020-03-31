@@ -61,7 +61,7 @@ namespace LearningFucker.Models
         /// <summary>
         /// 考试总分
         /// </summary>
-        public int TotalScore { get; set; }
+        public decimal TotalScore { get; set; }
         /// <summary>
         /// 允许考试次数
         /// </summary>

@@ -74,7 +74,17 @@ namespace LearningFucker.Handler
         public ITaskHandler Handler { get; internal set; }
         public LearningFucker.Models.Task Task { get; }
 
-        public TaskStatus TaskStatus { get; set; }
+        public Action<TaskForWork> Completed;
+        private TaskStatus taskStatus;
+        public TaskStatus TaskStatus { get=>taskStatus;
+            set {
+                taskStatus = value;
+                if (taskStatus == TaskStatus.Completed)
+                {
+                    Completed(this);
+                }
+            }
+        }
 
         public DateTime StartTime { get; internal set; }
         public DateTime EndTime { get; internal set; }
@@ -102,22 +112,22 @@ namespace LearningFucker.Handler
         /// <summary>
         /// 未开始
         /// </summary>
-        Initial,
+        Initial = 0,
         /// <summary>
         /// 进行中
         /// </summary>
-        Working,
+        Working = 1,
         /// <summary>
         /// 停止进程中...
         /// </summary>
-        Stopping,
+        Stopping = 2,
         /// <summary>
         /// 停止
         /// </summary>
-        Stopped,
+        Stopped = 3,
         /// <summary>
         /// 已完成
         /// </summary>
-        Completed
+        Completed = 4
     }
 }

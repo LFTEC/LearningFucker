@@ -26,5 +26,21 @@ namespace LearningFucker.Models
         public string CompanyName { get; set; }
         [JsonProperty(PropertyName = "AppMode")]
         public int? AppMode { get; set; }
+
+        public string UserId { get; set; }
+        public string Password { get; set; }
+
+        public void Clone(User user)
+        {
+            this.AppMode = user.AppMode;
+            this.CompanyId = user.CompanyId;
+            this.CompanyName = user.CompanyName;
+            this.IP = user.IP;
+            this.IsSelectDevice = user.IsSelectDevice;
+            this.RealName = user.RealName;
+            this.Token = user.Token;
+            this.UserId = user.UserId;
+            this.UserName = user.UserName;
+        }
     }
 }

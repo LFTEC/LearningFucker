@@ -132,6 +132,7 @@ namespace LearningFucker.Handler
                 timer.Stop();
 
             TaskStatus = TaskStatus.Stopped;
+            TaskForWork.TaskStatus = TaskStatus.Stopped;
             return true;
         }
 
@@ -149,6 +150,7 @@ namespace LearningFucker.Handler
                 timer.Stop();
 
             TaskStatus = TaskStatus.Completed;
+            TaskForWork.TaskStatus = TaskStatus.Completed;
             return true;
         }
     }

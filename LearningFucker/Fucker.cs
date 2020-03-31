@@ -67,7 +67,6 @@ namespace LearningFucker
                 }
                 else
                 {
-                    UserToken = "";
                     return null;
                 }
             }
@@ -646,7 +645,9 @@ namespace LearningFucker
             var result = await response.Content.ReadAsStringAsync();
             dynamic obj = JsonConvert.DeserializeObject(result);
             if (obj.state != "success")
-                throw new Exception("接口返回数据异常!");
+            {
+                return null;
+            }
 
             T data = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(obj.data));
             return data;
