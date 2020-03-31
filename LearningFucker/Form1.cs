@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.IO;
 using DevExpress.XtraGrid.Views.Grid;
 using DevExpress.XtraEditors.Repository;
+using DevExpress.XtraEditors;
 
 namespace LearningFucker
 {
@@ -173,6 +174,32 @@ namespace LearningFucker
             else
             {
                 e.RepositoryItem.ReadOnly = false;
+            }
+        }
+
+        private void BarButtonItem2_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
+        {
+            Worker.Refresh();
+        }
+
+        private void BarButtonItem3_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
+        {
+            var selectedTask = Worker.TaskList.Where(s => s.IsSelect);
+            
+            if(selectedTask.Count() == 0)
+            {
+                XtraMessageBox.Show("请选择要刷分的任务!", "请注意!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            else
+            {
+                List<int> tasks = new List<int>();
+                foreach (var item in selectedTask)
+                {
+                    tasks.Add(item.TaskType);
+                }
+
+                Worker.StartWork(tasks, false);
             }
         }
     }

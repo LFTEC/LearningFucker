@@ -84,16 +84,25 @@ namespace LearningFucker
                 throw new Exception("获取App信息时失败, 请重新打开程序重试!");
             }
 
-            var taskList = await Fucker.GetTaskList("0");
-            if(taskList == null)
-            {
-                throw new Exception("获取任务信息时失败, 请重新打开程序重试!");
-            }
-
             await RefreshTaskList();
 
             UserStatistics = await Fucker.GetMyTaskInfo();
             if(UserStatistics == null)
+            {
+                throw new Exception("获取用户任务完成信息时失败, 请重新打开程序重试!");
+            }
+
+            if (TaskRefresed != null)
+                TaskRefresed(this);
+
+        }
+
+        public async void Refresh()
+        {
+            await RefreshTaskList();
+
+            UserStatistics = await Fucker.GetMyTaskInfo();
+            if (UserStatistics == null)
             {
                 throw new Exception("获取用户任务完成信息时失败, 请重新打开程序重试!");
             }
@@ -129,27 +138,33 @@ namespace LearningFucker
 
             Timer.Start();
 
+            LaunchWorkList(tasks);
+
+            WorkList[0].Start(Fucker);
+        }
+
+        private void LaunchWorkList(List<int> tasks)
+        {
+            LearningFucker.Models.Task task;
             foreach (var item in tasks)
             {
-                switch(item)
+                switch (item)
                 {
                     case 14:
-
-                        TaskForWork taskForWork = new TaskForWork(TaskList[1], new StudyHandler());
+                        task = TaskList.FirstOrDefault(s => s.TaskType == item);
+                        TaskForWork taskForWork = new TaskForWork(task, new StudyHandler());
                         taskForWork.Completed = new Action<TaskForWork>(WorkItemCompleted);
                         WorkList.Add(taskForWork);
 
-                        taskForWork = new TaskForWork(TaskList[1], new ExamHandler());
+                        taskForWork = new TaskForWork(task, new ExamHandler());
                         taskForWork.Completed = new Action<TaskForWork>(WorkItemCompleted);
                         WorkList.Add(taskForWork);
-                        
+
                         break;
                     case 2:
                         break;
                 }
             }
-
-            WorkList[0].Start(Fucker);
         }
 
         private void WorkItemCompleted(TaskForWork workItem)
@@ -171,26 +186,6 @@ namespace LearningFucker
 
 
 
-        public async void DoStudy(CourseList list)
-        {
-            
-        }
-
-        public async void StartExam()
-        {
-
-        }
-
-        public async void DoExam(CourseList list)
-        {
-            Random random = new Random();
-            int id = random.Next(0, list.List.Count - 1);
-
-            var course = list.List[id];
-
-            var examList = await Fucker.GetExamList(course);
-
-        }
         
     }
 }
