@@ -77,7 +77,8 @@ namespace LearningFucker.Models
                 timer.Stop();
             }
 
-            this.StudyComplete(this);
+            if(this.StudyComplete != null)
+                this.StudyComplete(this);
             
         }
 
@@ -102,11 +103,31 @@ namespace LearningFucker.Models
                 this.Stop();
             }
 
-            if(this.TodayStudyTime * 60 >= this.Course.TotalMinute)
+            //if(this.TodayStudyTime * 60 >= this.Course.TotalMinute)
+            //{
+            //    this.Complete = true;
+            //    Course.Complete = true;
+            //    this.Stop();
+            //}
+
+            //if(this.Course.StudyDuration - this.TodayStudyTime * 60 >= 60)
+            //{
+            //    this.Complete = true;
+            //    Course.Complete = true;
+            //    this.Stop();
+            //}
+
+            if(this.StudyDuration / 60.0m - this.StudyIntegral >= 1)
+            {
+                this.Complete = true;
+                Course.Complete = true;
+                this.Stop();
+            }
 
             if(this.StudyIntegral == this.Appendix.MaxStudyIntegral)
             {
                 this.Complete = true;
+                Course.Complete = true;
                 this.Stop();
             }            
 
