@@ -4,13 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LearningFucker.Models;
+using System.Timers;
 
 namespace LearningFucker.Handler
 {
     public class PKHandler : TaskHandlerBase
     {
 
+
+
+
         private Arena Arena { get; set; }
+
         public override bool Start(Fucker fucker)
         {
             if (!base.Start(fucker)) return false;
@@ -20,17 +25,26 @@ namespace LearningFucker.Handler
         }
 
         private async void Start()
-        {
-            Arena = await Fucker.GetArena();
+        {            
             DoWork();
         }
 
         public async override void DoWork()
         {
-            if(await Fucker.JoinArena(Arena) && Arena.GroupId != "")
+            if (this.TaskStatus == TaskStatus.Stopping)
+            {
+                TaskStatus = TaskStatus.Stopped;
+                TaskForWork.TaskStatus = TaskStatus.Stopped;
+                return;
+            }
+
+            Arena = await Fucker.GetArena();
+            if (Arena == null) throw new Exception("error");
+
+            if (await Fucker.JoinArena(Arena) && Arena.GroupId != "")
             {
                 await GetArenaBothSide();
-
+                StartRound(0);
             }
             else
             {
@@ -49,18 +63,9 @@ namespace LearningFucker.Handler
                 await GetArenaBothSide();
         }
 
-        private async void StartFight()
-        {
-            for (int i = 0; i < Arena.TmNumber; i++)
-            {
-                if(!await StartRound(i))
-                {
 
-                }
-            }
-        }
 
-        private async Task<bool> StartRound(int roundIndex)
+        private async void StartRound(int roundIndex)
         {
             var round = await Fucker.Fight(Arena);
             if(round == null)
@@ -69,31 +74,89 @@ namespace LearningFucker.Handler
 
             }
 
-            if (round.CurrentIndex == roundIndex && round.Status == "start")
+            if (round.CurrentIndex == roundIndex && round.Status == "Start")
             {
                 if (Arena.Rounds == null)
                     Arena.Rounds = new List<Round>();
 
                 Arena.Rounds.Add(round);
 
+                Timer timer = new Timer();
+                timer.Interval = new Random().Next(5000, 9000);
+                timer.AutoReset = false;
+                timer.Elapsed += new ElapsedEventHandler((s, e) => OnReply(s, e, roundIndex));
+                timer.Start();
+            }
+            else if(roundIndex == Arena.TmNumber)
+            {
+                if (round.CurrentIndex == 0)
+                {
+
+                    await Fucker.EndFight();
+                    if (await Fucker.GetPKResult(Arena))
+                    {
+                        var gladiator = Arena.Results.FindIndex(s => s.Gladiator.UserName == Fucker.Worker.User.UserName);
+                        if (gladiator < 0) throw new Exception("error");
+
+                        TaskForWork.Integral += Arena.Results[gladiator].PKScroe;
+                        if (TaskForWork.LimitIntegral == TaskForWork.Integral)
+                            Complete();
+                        else
+                            DoWork();
+                    }
+                }
+                else
+                    StartRound(roundIndex);
             }
             else
             {
-                return await StartRound(roundIndex);
+                StartRound(roundIndex);
             }
            
 
             
         }
 
+        private async void OnReply(object sender, ElapsedEventArgs args, int roundIndex)
+        {
+            var round = Arena.Rounds[roundIndex];
+            var myself = Arena.BothSides.FindIndex(s => s.Username == Fucker.Worker.User.UserName);
+            var rival = myself ^ 1;
+
+            var myRight = round.AnswerResult[myself].Where(s => s == 1).Count();
+            var rivalRight = round.AnswerResult[rival].Where(s => s == 1).Count();
+
+            string answer;
+            if (myRight >= rivalRight + 2)
+            {
+                answer = round.Question.Answers == "A" ? "B" : "A";
+            }
+            else
+                answer = round.Question.Answers;
+                
+            if (await Fucker.SubmitQuestion(Arena, round, answer.Replace(";", ",")))
+            {
+                StartRound(++roundIndex);
+                
+            }
+        }
+
         public override bool Stop()
         {
-            throw new NotImplementedException();
+            if (TaskStatus == TaskStatus.Working)
+            {
+                TaskStatus = TaskStatus.Stopping;
+                return true;
+            }
+            else
+                return false;
         }
 
         protected override bool Complete()
         {
-            throw new NotImplementedException();
+            TaskStatus = TaskStatus.Completed;
+            TaskForWork.TaskStatus = TaskStatus.Completed;
+            return true;
         }
     }
 }

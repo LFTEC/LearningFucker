@@ -44,20 +44,21 @@ namespace LearningFucker.Handler
 
     public class TaskForWork
     {
-        public TaskForWork(decimal limitIntegral, LearningFucker.Models.Task task )
+        public TaskForWork(decimal limitIntegral, decimal Integral, LearningFucker.Models.Task task )
         {
             this.LimitIntegral = limitIntegral;
+            this.Integral = Integral;
             this.Task = task;
             TaskStatus = TaskStatus.Initial;
         }
 
-        public TaskForWork(LearningFucker.Models.Task task) : this(0, task)
+        public TaskForWork(LearningFucker.Models.Task task) : this(0,0, task)
         {
 
         }
 
-        public TaskForWork(decimal limitIntegral, LearningFucker.Models.Task task, ITaskHandler handler)
-            : this(limitIntegral, task)
+        public TaskForWork(decimal limitIntegral, decimal Integral, LearningFucker.Models.Task task, ITaskHandler handler)
+            : this(limitIntegral, Integral, task)
         {
             SetHandler(handler);
         }

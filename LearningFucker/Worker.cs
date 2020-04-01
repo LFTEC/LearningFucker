@@ -16,9 +16,9 @@ namespace LearningFucker
             timer = new Timer();
             timer.Elapsed += Timer_Elapsed;
             timer.AutoReset = true;
-            timer.Interval = Fucker.POLLING_TIME;
+            timer.Interval = 10000;
 
-            Fucker = new Fucker();
+            Fucker = new Fucker(this);
 
             WorkList = new List<TaskForWork>();
 
@@ -129,6 +129,23 @@ namespace LearningFucker
                 else
                     task.Clone(item);
             }
+
+            foreach (var item in TaskList)
+            {
+                item.TaskStatus = Handler.TaskStatus.Stopped;
+                var worklist = WorkList.Where(s => s.Task == item);
+                if(worklist.Count() > 0 && worklist.All(s => s.TaskStatus == Handler.TaskStatus.Completed) )
+                {
+                    item.TaskStatus = Handler.TaskStatus.Completed;
+                }
+
+                if(worklist.Any(s=>s.TaskStatus == Handler.TaskStatus.Working))
+                {
+                    item.TaskStatus = Handler.TaskStatus.Working;
+                }
+
+
+            }
         }
 
         public void StartWork(List<int> tasks, bool parallel)
@@ -168,6 +185,12 @@ namespace LearningFucker
                         WorkList.Add(taskForWork);
 
                         taskForWork = new TaskForWork(task, new ExerciseHandler());
+                        taskForWork.Completed = new Action<TaskForWork>(WorkItemCompleted);
+                        WorkList.Add(taskForWork);
+                        break;
+                    case 13:
+                        task = TaskList.FirstOrDefault(s => s.TaskType == item);
+                        taskForWork = new TaskForWork(task.LimitIntegral, task.Integral, task, new PKHandler());
                         taskForWork.Completed = new Action<TaskForWork>(WorkItemCompleted);
                         WorkList.Add(taskForWork);
                         break;

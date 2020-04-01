@@ -128,7 +128,7 @@ namespace LearningFucker.Models
         /// <summary>
         /// pk获得积分
         /// </summary>
-        public int PKScroe { get; set; }
+        public decimal PKScroe { get; set; }
 
         /// <summary>
         /// 是否取胜(0取胜, 1失败)
@@ -145,6 +145,15 @@ namespace LearningFucker.Models
         /// </summary>
         public int CombatChange { get; set; }
 
+        [JsonProperty("pkUserInfo")]
+        public ResultGladiator Gladiator { get; set; }
+
+    }
+
+    public class ResultGladiator
+    {
+        public string UserName { get; set; }
+        public string RealName { get; set; }
     }
 
 
