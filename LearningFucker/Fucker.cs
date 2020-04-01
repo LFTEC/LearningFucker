@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Web;
 using LearningFucker.Models;
+using System.Collections;
 
 namespace LearningFucker
 {
@@ -462,8 +463,9 @@ namespace LearningFucker
                 valuePairs.Add("projType", course.ProjType);
                 valuePairs.Add("wareId", "");
                 valuePairs.Add("second", exerciseTime.ToString());
-                valuePairs.Add("wareId", JsonConvert.SerializeObject(answers));
+                valuePairs.Add("answer", JsonConvert.SerializeObject(answers));
                 var result = await Get<string>("Api/Courseware/Exercise/SubmitExerciseAnswer", valuePairs);
+                exercise.Result = new ExerciseResult();
                 exercise.Result.ResultId = result;
                 return true;
             }
@@ -592,6 +594,204 @@ namespace LearningFucker
         }
 
         /// <summary>
+        /// 获取PK信息
+        /// </summary>
+        /// <returns></returns>
+        public async Task<CombatList> GetPKInfo()
+        {
+            try
+            {
+                Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+                valuePairs.Add("pageIndex", "0");
+                valuePairs.Add("pageSize", "10");
+                valuePairs.Add("isShow", "0");
+                var combatList = await Post<CombatList>("Api/UserPK/GetInfo", GetContent(valuePairs));
+                return combatList;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+
+        /// <summary>
+        /// 获取竞技场
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Arena> GetArena()
+        {
+            try
+            {
+                var arena = await Post<Arena>("Api/UserPK/IsJoinPK", null);
+                await Post<string>("Api/UserPK/IsTmCount", null);
+                return arena;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 加入竞技场
+        /// </summary>
+        /// <param name="arena"></param>
+        /// <returns></returns>
+        public async System.Threading.Tasks.Task<bool> JoinArena(Arena arena)
+        {
+            try
+            {                
+                var tmpArena = await Get<Arena>("Api/UserPK/JoinPK", null);
+                if (string.IsNullOrEmpty(tmpArena.GroupId))
+                {
+                    arena.GroupId = "";
+                    return false;
+                }
+                else
+                {
+                    arena.GroupId = tmpArena.GroupId;
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 获取对战双方信息
+        /// </summary>
+        /// <param name="arena"></param>
+        /// <returns></returns>
+        public async System.Threading.Tasks.Task<bool> GetArenaBothSide(Arena arena)
+        {
+            try
+            {
+                Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+                valuePairs.Add("groupID", arena.GroupId);
+
+                var list = await Post<List<List<Gladiator>>>("Api/UserPK/GetGroupUser", GetContent(valuePairs));
+                if(list != null)
+                {
+                    arena.BothSides = list[0];
+                    return true;
+                }
+                else
+                    return false;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 准备战斗
+        /// </summary>
+        /// <returns></returns>
+        public async System.Threading.Tasks.Task<bool> ReadyToFight()
+        {
+            try
+            {
+
+                await Post<string>("Api/UserPK/EndJoin", null);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 开始战斗
+        /// </summary>
+        /// <returns></returns>
+        public async System.Threading.Tasks.Task<Round> Fight(Arena arena)
+        {
+            try
+            {
+                Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+                valuePairs.Add("groupID", arena.GroupId);
+                valuePairs.Add("mode", "0");
+
+                var round = await Get<Round>("Api/UserPK/GetCurrentStatus", valuePairs);
+                return round;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 提交PK答案
+        /// </summary>
+        /// <param name="arena"></param>
+        /// <returns></returns>
+        public async System.Threading.Tasks.Task<bool> SubmitQuestion(Arena arena, Round round, string answer)
+        {
+            try
+            {
+                Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+                valuePairs.Add("groupID", arena.GroupId);
+                valuePairs.Add("mode", "0");
+                valuePairs.Add("index", round.CurrentIndex.ToString());
+                valuePairs.Add("answer", answer);
+
+                await Post<string>("Api/UserPK/SubmitQuestion", GetContent(valuePairs));
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 结束战斗
+        /// </summary>
+        /// <returns></returns>
+        public async System.Threading.Tasks.Task<bool> EndFight()
+        {
+            try
+            {
+                Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+                valuePairs.Add("mode", "0");
+                await Post<string>("Api/UserPK/EndJoin", GetContent(valuePairs));
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 获取PK结果
+        /// </summary>
+        /// <param name="arena"></param>
+        /// <returns></returns>
+        public async System.Threading.Tasks.Task<bool> GetPKResult(Arena arena)
+        {
+            try
+            {
+                Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+                valuePairs.Add("groupID", arena.GroupId);
+                valuePairs.Add("mode", "0");
+                var list = await Post<List<CombatResult>>("Api/UserPK/GetPKResult", GetContent(valuePairs));
+                arena.Results = list;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="body"></param>
@@ -630,7 +830,9 @@ namespace LearningFucker
             if (obj.state != "success")
                 throw new Exception("接口返回数据异常!");
 
-            T data = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(obj.data));
+            JsonSerializerSettings setting = new JsonSerializerSettings();
+            setting.NullValueHandling = NullValueHandling.Ignore;
+            T data = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(obj.data), setting);
             return data;
         }
 

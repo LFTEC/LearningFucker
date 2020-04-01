@@ -162,6 +162,14 @@ namespace LearningFucker
 
                         break;
                     case 2:
+                        task = TaskList.FirstOrDefault(s => s.TaskType == item);
+                        taskForWork = new TaskForWork(task, new ElectiveHandler());
+                        taskForWork.Completed = new Action<TaskForWork>(WorkItemCompleted);
+                        WorkList.Add(taskForWork);
+
+                        taskForWork = new TaskForWork(task, new ExerciseHandler());
+                        taskForWork.Completed = new Action<TaskForWork>(WorkItemCompleted);
+                        WorkList.Add(taskForWork);
                         break;
                 }
             }

@@ -51,6 +51,11 @@ namespace LearningFucker.Models
         public bool IsHidden { get; set; }
         public int TaskCategory { get; set; }
 
+        /// <summary>
+        /// 未完成任务数
+        /// </summary>
+        public int UncompeletedItemCount { get; set; }
+
         public bool IsSelect { get; set; }
 
         public LearningFucker.Handler.TaskStatus TaskStatus { get; set; }
@@ -67,6 +72,7 @@ namespace LearningFucker.Models
             this.Enabled = task.Enabled;
             this.IsHidden = task.IsHidden;
             this.TaskCategory = task.TaskCategory;
+            this.UncompeletedItemCount = task.UncompeletedItemCount;
         }
 
     }

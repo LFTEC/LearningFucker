@@ -41,6 +41,11 @@ namespace LearningFucker.Models
 
         public Action<Study> StudyComplete;
 
+        /// <summary>
+        /// 开始学习时的积分
+        /// </summary>
+        public decimal InitIntegral { get; set; }
+
         public int StudyDuration { get; internal set; }
 
         private void AddStudyDuration(int duration)
@@ -77,9 +82,8 @@ namespace LearningFucker.Models
                 timer.Stop();
             }
 
-            if(this.StudyComplete != null)
-                this.StudyComplete(this);
-            
+            StudyComplete?.Invoke(this);
+
         }
 
         private async void Timer_Elapsed(object sender, ElapsedEventArgs e)
@@ -117,7 +121,8 @@ namespace LearningFucker.Models
             //    this.Stop();
             //}
 
-            if(this.StudyDuration / 60.0m - this.StudyIntegral >= 1)
+            //学习时长增加而积分不增加时, 停止学习
+            if(this.StudyDuration / 60.0m - (this.StudyIntegral - this.InitIntegral) >= 1.5m)
             {
                 this.Complete = true;
                 Course.Complete = true;

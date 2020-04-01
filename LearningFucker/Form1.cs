@@ -166,10 +166,9 @@ namespace LearningFucker
             var row = grid.GetRow(e.RowHandle) as LearningFucker.Models.Task;
 
 
-            if (row.LimitIntegral <= row.Integral)
+            if (row.LimitIntegral <= row.Integral || row.UncompeletedItemCount == 0)
             {
                 e.RepositoryItem.ReadOnly = true;
-
             }
             else
             {
@@ -185,6 +184,7 @@ namespace LearningFucker
         private void BarButtonItem3_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
         {
             var selectedTask = Worker.TaskList.Where(s => s.IsSelect);
+            gridView1.PostEditor();
             
             if(selectedTask.Count() == 0)
             {
@@ -201,6 +201,11 @@ namespace LearningFucker
 
                 Worker.StartWork(tasks, false);
             }
+        }
+
+        private void GridView1_CustomDrawCell(object sender, DevExpress.XtraGrid.Views.Base.RowCellCustomDrawEventArgs e)
+        {
+            
         }
     }
 

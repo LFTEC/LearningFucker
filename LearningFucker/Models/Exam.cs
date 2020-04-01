@@ -349,7 +349,7 @@ namespace LearningFucker.Models
     public class ExerciseAnswer
     {
         [JsonProperty("tmid")]
-        public string TmID { get; set; }
+        public int TmID { get; set; }
 
         /// <summary>
         /// 答案(逗号分隔)
