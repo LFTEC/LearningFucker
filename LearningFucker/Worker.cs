@@ -162,6 +162,7 @@ namespace LearningFucker
 
         private void LaunchWorkList(List<int> tasks)
         {
+            WorkList.Clear();
             LearningFucker.Models.Task task;
             foreach (var item in tasks)
             {
