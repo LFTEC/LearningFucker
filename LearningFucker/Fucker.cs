@@ -104,7 +104,10 @@ namespace LearningFucker
         {
             try
             {
-                return await Get<UserStatistics>("Api/Common/Task/GetMyTaskInfo", null);
+                var userStat = await Get<UserStatistics>("Api/Common/Task/GetMyTaskInfo", null);
+                var tmpUserStat = await Post<UserStatistics>("Api/Integral/GetSummaries", null);
+                userStat.WeekIntegral = tmpUserStat.WeekIntegral;
+                return userStat;
             }
             catch (Exception ex)
             {
@@ -810,52 +813,110 @@ namespace LearningFucker
 
         private async Task<T> Get<T>(string requestUrl, IEnumerable<KeyValuePair<string, string>> pairs) where T : class
         {
-            Random random = new Random();
-            var ran = random.NextDouble().ToString();
+            return await Get<T>(requestUrl, pairs, 0);
+        }
 
-            requestUrl = string.Format("{0}?random={1}", requestUrl, ran);
-            if (pairs != null && pairs.Count() > 0)
+        private async Task<T> Get<T>(string requestUrl, IEnumerable<KeyValuePair<string, string>> pairs, int count) where T : class
+        {
+            HttpResponseMessage response = null;
+            string result = "";
+            try
             {
-                var querystring = pairs.Aggregate("", (current, item) => string.Format("{0}{1}={2}&", current, item.Key, HttpUtility.UrlEncode(item.Value, Encoding.UTF8)));
-                querystring = querystring.Substring(0, querystring.LastIndexOf("&"));
-                requestUrl = requestUrl + "&" + querystring;
-            }
+                Random random = new Random();
+                var ran = random.NextDouble().ToString();
 
-            var response = await httpClient.GetAsync(requestUrl, HttpCompletionOption.ResponseContentRead);
-            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                requestUrl = string.Format("{0}?random={1}", requestUrl, ran);
+                if (pairs != null && pairs.Count() > 0)
+                {
+                    var querystring = pairs.Aggregate("", (current, item) => string.Format("{0}{1}={2}&", current, item.Key, HttpUtility.UrlEncode(item.Value, Encoding.UTF8)));
+                    querystring = querystring.Substring(0, querystring.LastIndexOf("&"));
+                    requestUrl = requestUrl + "&" + querystring;
+                }
+
+                response = await httpClient.GetAsync(requestUrl, HttpCompletionOption.ResponseContentRead);
+                if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    throw new Exception("网络访问异常");
+                }
+
+                result = await response.Content.ReadAsStringAsync();
+                dynamic obj = JsonConvert.DeserializeObject(result);
+                if (obj.state != "success")
+                    throw new Exception("接口返回数据异常!");
+
+                JsonSerializerSettings setting = new JsonSerializerSettings();
+                setting.NullValueHandling = NullValueHandling.Ignore;
+                T data = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(obj.data), setting);
+                return data;
+            }
+            catch(Exception ex)
             {
-                throw new Exception("网络访问异常");
+                if(count < 3)
+                {
+                    return await Get<T>(requestUrl, pairs, ++count);
+                }
+                else
+                {
+                    
+                    throw new TransportException(string.Format("GET Error:{0}. Http Code:{1}, Response: {2}", requestUrl, response.StatusCode.ToString(), result), ex);
+                }
             }
-
-            var result = await response.Content.ReadAsStringAsync();
-            dynamic obj = JsonConvert.DeserializeObject(result);
-            if (obj.state != "success")
-                throw new Exception("接口返回数据异常!");
-
-            JsonSerializerSettings setting = new JsonSerializerSettings();
-            setting.NullValueHandling = NullValueHandling.Ignore;
-            T data = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(obj.data), setting);
-            return data;
         }
 
         private async Task<T> Post<T>(string requestUrl, HttpContent content) where T : class
         {
-            var response = await httpClient.PostAsync(requestUrl, content);
-            if (response.StatusCode != System.Net.HttpStatusCode.OK)
-            {
-                throw new Exception("网络访问异常");
-            }
-
-            var result = await response.Content.ReadAsStringAsync();
-            dynamic obj = JsonConvert.DeserializeObject(result);
-            if (obj.state != "success")
-            {
-                return null;
-            }
-
-            T data = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(obj.data));
-            return data;
+            return await Post<T>(requestUrl, content, 0);
         }
 
+        private async Task<T> Post<T>(string requestUrl, HttpContent content, int count) where T : class
+        {
+            HttpResponseMessage response = null;
+            string result = "";
+            try
+            {
+                response = await httpClient.PostAsync(requestUrl, content);
+                if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    throw new Exception("网络访问异常");
+                }
+
+                result = await response.Content.ReadAsStringAsync();
+                dynamic obj = JsonConvert.DeserializeObject(result);
+                if (obj.state != "success")
+                {
+                    return null;
+                }
+
+                T data = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(obj.data));
+                return data;
+            }
+            catch(Exception ex)
+            {
+                if(count <3)
+                {
+                    return await Post<T>(requestUrl, content, ++count);
+                }
+                else
+                {
+                    throw new TransportException(string.Format("POST Error:{0}|{1}. Http Code: {2}, Response: {3}", requestUrl, JsonConvert.SerializeObject(content), response.StatusCode.ToString(), result), ex);
+                }
+            }
+        }
+
+    }
+
+    public class TransportException: Exception
+    {
+        public TransportException(string errText) : base(errText )
+        {
+
+        }
+
+        public TransportException(string errText, Exception innerException): base(errText,innerException)
+        {
+
+        }
+
+        
     }
 }

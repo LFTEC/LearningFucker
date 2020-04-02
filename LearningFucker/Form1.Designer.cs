@@ -41,13 +41,15 @@
             this.barSubItem2 = new DevExpress.XtraBars.BarSubItem();
             this.bar3 = new DevExpress.XtraBars.Bar();
             this.barStatusText = new DevExpress.XtraBars.BarStaticItem();
+            this.progressBar = new DevExpress.XtraBars.BarEditItem();
+            this.repositoryItemMarqueeProgressBar1 = new DevExpress.XtraEditors.Repository.RepositoryItemMarqueeProgressBar();
+            this.barTodyIntegral = new DevExpress.XtraBars.BarStaticItem();
+            this.barWeekIntegral = new DevExpress.XtraBars.BarStaticItem();
+            this.barSummaryIntegral = new DevExpress.XtraBars.BarStaticItem();
             this.barDockControlTop = new DevExpress.XtraBars.BarDockControl();
             this.barDockControlBottom = new DevExpress.XtraBars.BarDockControl();
             this.barDockControlLeft = new DevExpress.XtraBars.BarDockControl();
             this.barDockControlRight = new DevExpress.XtraBars.BarDockControl();
-            this.barButtonItem1 = new DevExpress.XtraBars.BarButtonItem();
-            this.barStaticItem1 = new DevExpress.XtraBars.BarStaticItem();
-            this.barHeaderItem1 = new DevExpress.XtraBars.BarHeaderItem();
             this.layoutLogin = new DevExpress.XtraLayout.LayoutControl();
             this.textEdit11 = new DevExpress.XtraEditors.TextEdit();
             this.textEdit2 = new DevExpress.XtraEditors.TextEdit();
@@ -81,6 +83,7 @@
             this.layoutControlItem3 = new DevExpress.XtraLayout.LayoutControlItem();
             this.dxError = new DevExpress.XtraEditors.DXErrorProvider.DXErrorProvider(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.barManager1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.repositoryItemMarqueeProgressBar1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutLogin)).BeginInit();
             this.layoutLogin.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.textEdit11.Properties)).BeginInit();
@@ -123,16 +126,19 @@
             this.barManager1.Items.AddRange(new DevExpress.XtraBars.BarItem[] {
             this.barBtnLogin,
             this.barSubItem1,
-            this.barButtonItem1,
-            this.barStaticItem1,
-            this.barHeaderItem1,
             this.barStatusText,
             this.barButtonItem2,
             this.barButtonItem3,
             this.barButtonItem4,
-            this.barSubItem2});
+            this.barSubItem2,
+            this.progressBar,
+            this.barWeekIntegral,
+            this.barTodyIntegral,
+            this.barSummaryIntegral});
             this.barManager1.MainMenu = this.bar2;
-            this.barManager1.MaxItemId = 13;
+            this.barManager1.MaxItemId = 21;
+            this.barManager1.RepositoryItems.AddRange(new DevExpress.XtraEditors.Repository.RepositoryItem[] {
+            this.repositoryItemMarqueeProgressBar1});
             this.barManager1.StatusBar = this.bar3;
             // 
             // bar1
@@ -210,7 +216,11 @@
             this.bar3.DockRow = 0;
             this.bar3.DockStyle = DevExpress.XtraBars.BarDockStyle.Bottom;
             this.bar3.LinksPersistInfo.AddRange(new DevExpress.XtraBars.LinkPersistInfo[] {
-            new DevExpress.XtraBars.LinkPersistInfo(this.barStatusText)});
+            new DevExpress.XtraBars.LinkPersistInfo(this.barStatusText),
+            new DevExpress.XtraBars.LinkPersistInfo(this.progressBar, true),
+            new DevExpress.XtraBars.LinkPersistInfo(this.barTodyIntegral, true),
+            new DevExpress.XtraBars.LinkPersistInfo(this.barWeekIntegral, true),
+            new DevExpress.XtraBars.LinkPersistInfo(this.barSummaryIntegral, true)});
             this.bar3.OptionsBar.AllowQuickCustomization = false;
             this.bar3.OptionsBar.DrawDragBorder = false;
             this.bar3.OptionsBar.UseWholeRow = true;
@@ -218,9 +228,64 @@
             // 
             // barStatusText
             // 
-            this.barStatusText.Caption = "barStaticItem2";
+            this.barStatusText.AllowRightClickInMenu = false;
+            this.barStatusText.AutoSize = DevExpress.XtraBars.BarStaticItemSize.Spring;
+            this.barStatusText.Border = DevExpress.XtraEditors.Controls.BorderStyles.NoBorder;
+            this.barStatusText.Description = "123";
             this.barStatusText.Id = 7;
             this.barStatusText.Name = "barStatusText";
+            this.barStatusText.Size = new System.Drawing.Size(500, 0);
+            this.barStatusText.Width = 500;
+            // 
+            // progressBar
+            // 
+            this.progressBar.Edit = this.repositoryItemMarqueeProgressBar1;
+            this.progressBar.EditWidth = 30;
+            this.progressBar.Id = 13;
+            this.progressBar.Name = "progressBar";
+            this.progressBar.ItemClick += new DevExpress.XtraBars.ItemClickEventHandler(this.ProgressBar_ItemClick);
+            // 
+            // repositoryItemMarqueeProgressBar1
+            // 
+            this.repositoryItemMarqueeProgressBar1.MarqueeAnimationSpeed = 150;
+            this.repositoryItemMarqueeProgressBar1.MarqueeWidth = 30;
+            this.repositoryItemMarqueeProgressBar1.Name = "repositoryItemMarqueeProgressBar1";
+            // 
+            // barTodyIntegral
+            // 
+            this.barTodyIntegral.Border = DevExpress.XtraEditors.Controls.BorderStyles.NoBorder;
+            this.barTodyIntegral.Caption = "0.0";
+            this.barTodyIntegral.Hint = "今天获得积分";
+            this.barTodyIntegral.Id = 19;
+            this.barTodyIntegral.ItemAppearance.Normal.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.barTodyIntegral.ItemAppearance.Normal.ForeColor = System.Drawing.Color.Red;
+            this.barTodyIntegral.ItemAppearance.Normal.Options.UseFont = true;
+            this.barTodyIntegral.ItemAppearance.Normal.Options.UseForeColor = true;
+            this.barTodyIntegral.Name = "barTodyIntegral";
+            // 
+            // barWeekIntegral
+            // 
+            this.barWeekIntegral.Border = DevExpress.XtraEditors.Controls.BorderStyles.NoBorder;
+            this.barWeekIntegral.Caption = "0.0";
+            this.barWeekIntegral.Hint = "本周获得积分";
+            this.barWeekIntegral.Id = 18;
+            this.barWeekIntegral.ItemAppearance.Normal.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.barWeekIntegral.ItemAppearance.Normal.ForeColor = System.Drawing.Color.Red;
+            this.barWeekIntegral.ItemAppearance.Normal.Options.UseFont = true;
+            this.barWeekIntegral.ItemAppearance.Normal.Options.UseForeColor = true;
+            this.barWeekIntegral.Name = "barWeekIntegral";
+            // 
+            // barSummaryIntegral
+            // 
+            this.barSummaryIntegral.Border = DevExpress.XtraEditors.Controls.BorderStyles.NoBorder;
+            this.barSummaryIntegral.Caption = "0.0";
+            this.barSummaryIntegral.Hint = "总获得积分";
+            this.barSummaryIntegral.Id = 20;
+            this.barSummaryIntegral.ItemAppearance.Normal.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.barSummaryIntegral.ItemAppearance.Normal.ForeColor = System.Drawing.Color.Red;
+            this.barSummaryIntegral.ItemAppearance.Normal.Options.UseFont = true;
+            this.barSummaryIntegral.ItemAppearance.Normal.Options.UseForeColor = true;
+            this.barSummaryIntegral.Name = "barSummaryIntegral";
             // 
             // barDockControlTop
             // 
@@ -228,21 +293,21 @@
             this.barDockControlTop.Dock = System.Windows.Forms.DockStyle.Top;
             this.barDockControlTop.Location = new System.Drawing.Point(0, 0);
             this.barDockControlTop.Manager = this.barManager1;
-            this.barDockControlTop.Size = new System.Drawing.Size(1138, 55);
+            this.barDockControlTop.Size = new System.Drawing.Size(1138, 56);
             // 
             // barDockControlBottom
             // 
             this.barDockControlBottom.CausesValidation = false;
             this.barDockControlBottom.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.barDockControlBottom.Location = new System.Drawing.Point(0, 697);
+            this.barDockControlBottom.Location = new System.Drawing.Point(0, 698);
             this.barDockControlBottom.Manager = this.barManager1;
-            this.barDockControlBottom.Size = new System.Drawing.Size(1138, 27);
+            this.barDockControlBottom.Size = new System.Drawing.Size(1138, 26);
             // 
             // barDockControlLeft
             // 
             this.barDockControlLeft.CausesValidation = false;
             this.barDockControlLeft.Dock = System.Windows.Forms.DockStyle.Left;
-            this.barDockControlLeft.Location = new System.Drawing.Point(0, 55);
+            this.barDockControlLeft.Location = new System.Drawing.Point(0, 56);
             this.barDockControlLeft.Manager = this.barManager1;
             this.barDockControlLeft.Size = new System.Drawing.Size(0, 642);
             // 
@@ -250,27 +315,9 @@
             // 
             this.barDockControlRight.CausesValidation = false;
             this.barDockControlRight.Dock = System.Windows.Forms.DockStyle.Right;
-            this.barDockControlRight.Location = new System.Drawing.Point(1138, 55);
+            this.barDockControlRight.Location = new System.Drawing.Point(1138, 56);
             this.barDockControlRight.Manager = this.barManager1;
             this.barDockControlRight.Size = new System.Drawing.Size(0, 642);
-            // 
-            // barButtonItem1
-            // 
-            this.barButtonItem1.Caption = "登录";
-            this.barButtonItem1.Id = 4;
-            this.barButtonItem1.Name = "barButtonItem1";
-            // 
-            // barStaticItem1
-            // 
-            this.barStaticItem1.Caption = "-";
-            this.barStaticItem1.Id = 5;
-            this.barStaticItem1.Name = "barStaticItem1";
-            // 
-            // barHeaderItem1
-            // 
-            this.barHeaderItem1.Caption = "-";
-            this.barHeaderItem1.Id = 6;
-            this.barHeaderItem1.Name = "barHeaderItem1";
             // 
             // layoutLogin
             // 
@@ -322,7 +369,7 @@
             this.checkEdit1.MenuManager = this.barManager1;
             this.checkEdit1.Name = "checkEdit1";
             this.checkEdit1.Properties.Caption = "记住账号密码";
-            this.checkEdit1.Size = new System.Drawing.Size(104, 19);
+            this.checkEdit1.Size = new System.Drawing.Size(104, 20);
             this.checkEdit1.StyleController = this.layoutLogin;
             this.checkEdit1.TabIndex = 8;
             // 
@@ -552,6 +599,9 @@
             this.imageCollection1.Images.SetKeyName(1, "play_16x16.png");
             this.imageCollection1.Images.SetKeyName(2, "stop_16x16.png");
             this.imageCollection1.Images.SetKeyName(3, "iconsetsymbols3_16x16.png");
+            this.imageCollection1.Images.SetKeyName(4, "learn16.png");
+            this.imageCollection1.Images.SetKeyName(5, "learn32.png");
+            this.imageCollection1.Images.SetKeyName(6, "5-121204193934-52.gif");
             // 
             // colIsSelect
             // 
@@ -616,6 +666,7 @@
             this.Text = "Learning Fucker";
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.barManager1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.repositoryItemMarqueeProgressBar1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutLogin)).EndInit();
             this.layoutLogin.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.textEdit11.Properties)).EndInit();
@@ -670,9 +721,6 @@
         private DevExpress.XtraLayout.EmptySpaceItem emptySpaceItem2;
         private DevExpress.XtraBars.BarButtonItem barBtnLogin;
         private DevExpress.XtraBars.BarSubItem barSubItem1;
-        private DevExpress.XtraBars.BarButtonItem barButtonItem1;
-        private DevExpress.XtraBars.BarStaticItem barStaticItem1;
-        private DevExpress.XtraBars.BarHeaderItem barHeaderItem1;
         private DevExpress.XtraLayout.LayoutControl layoutTask;
         private DevExpress.XtraGrid.GridControl gridControl1;
         private System.Windows.Forms.BindingSource bindingSource1;
@@ -699,6 +747,11 @@
         private DevExpress.XtraBars.BarButtonItem barButtonItem3;
         private DevExpress.XtraBars.BarButtonItem barButtonItem4;
         private DevExpress.XtraBars.BarSubItem barSubItem2;
+        private DevExpress.XtraBars.BarEditItem progressBar;
+        private DevExpress.XtraEditors.Repository.RepositoryItemMarqueeProgressBar repositoryItemMarqueeProgressBar1;
+        private DevExpress.XtraBars.BarStaticItem barTodyIntegral;
+        private DevExpress.XtraBars.BarStaticItem barWeekIntegral;
+        private DevExpress.XtraBars.BarStaticItem barSummaryIntegral;
     }
 }
 

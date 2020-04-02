@@ -31,8 +31,11 @@ namespace LearningFucker
             layoutTask.Dock = DockStyle.Fill;
             Worker = new Worker();
             Worker.TaskRefresed = new Action<Worker>(s => gridControl1.RefreshDataSource());
+            Worker.OnSaying = new Action<object, string>((sender, Text) => barStatusText.Caption = Text);
             Config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             ReadPassword();
+            var image = imageCollection1.Images["learn32.png"];
+            this.Icon = Icon.FromHandle(((Bitmap)image).GetHicon());
         }
 
         private const string KEY = "jcflRWUJqAs=";
@@ -73,6 +76,11 @@ namespace LearningFucker
                     layoutTask.Visible = true;
 
                     await Worker.Init();
+
+                    this.barTodyIntegral.Caption = Worker.UserStatistics.TodayIntegral.ToString();
+                    this.barWeekIntegral.Caption = Worker.UserStatistics.WeekIntegral.ToString();
+                    this.barSummaryIntegral.Caption = Worker.UserStatistics.SumIntegral.ToString();
+
                     //var taskList = new List<int>();
                     //taskList.Add(14);
                     //Worker.StartWork(taskList, false);
@@ -150,11 +158,13 @@ namespace LearningFucker
         {
             this.bindingSource1.DataSource = Worker.TaskList;
 
-            repositoryItemImageComboBox1.Items.Add("", LearningFucker.Handler.TaskStatus.Initial, 2);
+            repositoryItemImageComboBox1.Items.Add("", LearningFucker.Handler.TaskStatus.Initial, 6);
             repositoryItemImageComboBox1.Items.Add("", LearningFucker.Handler.TaskStatus.Completed, 3);
-            repositoryItemImageComboBox1.Items.Add("", LearningFucker.Handler.TaskStatus.Stopped, 2);
-            repositoryItemImageComboBox1.Items.Add("", LearningFucker.Handler.TaskStatus.Stopping, 2);
-            repositoryItemImageComboBox1.Items.Add("", LearningFucker.Handler.TaskStatus.Working, 1);
+            repositoryItemImageComboBox1.Items.Add("", LearningFucker.Handler.TaskStatus.Stopped, 6);
+            repositoryItemImageComboBox1.Items.Add("", LearningFucker.Handler.TaskStatus.Stopping, 6);
+            repositoryItemImageComboBox1.Items.Add("", LearningFucker.Handler.TaskStatus.Working, 6);
+
+            this.progressBar.Visibility = DevExpress.XtraBars.BarItemVisibility.Never;
         }
 
 
@@ -183,6 +193,7 @@ namespace LearningFucker
 
         private void BarButtonItem3_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
         {
+            
             var selectedTask = Worker.TaskList.Where(s => s.IsSelect);
             gridView1.PostEditor();
             
@@ -193,6 +204,7 @@ namespace LearningFucker
             }
             else
             {
+                this.progressBar.Visibility = DevExpress.XtraBars.BarItemVisibility.Always;
                 List<int> tasks = new List<int>();
                 foreach (var item in selectedTask)
                 {
@@ -206,6 +218,16 @@ namespace LearningFucker
         private void GridView1_CustomDrawCell(object sender, DevExpress.XtraGrid.Views.Base.RowCellCustomDrawEventArgs e)
         {
             
+        }
+
+        private void BarTodyIntregal_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
+        {
+
+        }
+
+        private void ProgressBar_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
+        {
+
         }
     }
 

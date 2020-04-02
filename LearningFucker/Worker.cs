@@ -44,6 +44,9 @@ namespace LearningFucker
 
         public Action<Worker> TaskRefresed;
 
+        public Action<object, string> OnSaying;
+        public Action<object, string> OnReportingError;
+
         private async void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             UserStatistics = await Fucker.GetMyTaskInfo();
@@ -73,6 +76,16 @@ namespace LearningFucker
                 User.Clone(user);
                 return true;
             }
+        }
+
+        public void Say(string text)
+        {
+            OnSaying?.Invoke(this, text);
+        }
+
+        public void ReportError(string errText)
+        {
+            OnReportingError?.Invoke(this, errText);
         }
 
         public async System.Threading.Tasks.Task Init()
@@ -152,6 +165,8 @@ namespace LearningFucker
         {
             if (tasks == null || tasks.Count == 0)
                 return;
+
+            this.Say("开始进行学习任务...");
 
             Timer.Start();
 
