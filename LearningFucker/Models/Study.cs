@@ -82,6 +82,7 @@ namespace LearningFucker.Models
                 timer.Stop();
             }
 
+            this.Complete = true;
             StudyComplete?.Invoke(this);
 
         }
@@ -94,7 +95,6 @@ namespace LearningFucker.Models
 
             if(this.Ware.StudyDuration >= this.Ware.Duration )
             {
-                this.Complete = true;
                 Ware.Complete = true;
 
                 this.Stop();
@@ -102,7 +102,6 @@ namespace LearningFucker.Models
 
             if(this.Course.StudyDuration >= this.Course.TotalMinute)
             {
-                this.Complete = true;
                 Course.Complete = true;
                 this.Stop();
             }
@@ -122,16 +121,15 @@ namespace LearningFucker.Models
             //}
 
             //学习时长增加而积分不增加时, 停止学习
-            if(this.StudyDuration / 60.0m - (this.StudyIntegral - this.InitIntegral) >= 1.5m)
+            if(this.StudyDuration / 120.0m - (this.StudyIntegral - this.InitIntegral) >= 1.0m)
             {
-                this.Complete = true;
                 Course.Complete = true;
                 this.Stop();
             }
 
             if(this.StudyIntegral == this.Appendix.MaxStudyIntegral)
             {
-                this.Complete = true;
+                
                 Course.Complete = true;
                 this.Stop();
             }            

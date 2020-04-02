@@ -112,7 +112,7 @@ namespace LearningFucker.Handler
                 {
                     if(paper.Result.ErrorQuestionCount != 0)      //答题失败
                     {
-                        UpdateQuestionBank(paper.Result);
+                        await UpdateQuestionBank(paper.Result);
                         continue;
                     }
                     else
@@ -128,7 +128,7 @@ namespace LearningFucker.Handler
             }
         }
 
-        private async void UpdateQuestionBank(Result result)
+        private async System.Threading.Tasks.Task UpdateQuestionBank(Result result)
         {
             try
             {
