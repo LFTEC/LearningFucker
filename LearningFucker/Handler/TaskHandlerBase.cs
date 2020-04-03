@@ -11,18 +11,31 @@ namespace LearningFucker.Handler
         public virtual bool Start(Fucker fucker)
         {
             this.Fucker = fucker;
+            if (TaskStatus != TaskStatus.Initial)
+                return false;
             TaskStatus = TaskStatus.Working;
-            TaskForWork.StartTime = DateTime.Now;
-            TaskForWork.TaskStatus = TaskStatus.Working;
 
             return true;
         }
 
-        public abstract bool Stop();
+        public virtual bool Stop()
+        {
+            if (TaskStatus != TaskStatus.Working)
+                return false;
+            TaskStatus = TaskStatus.Stopping;
+
+            return true;
+        }
 
         public abstract void DoWork();
 
-        protected abstract bool Complete();
+        protected virtual bool Complete()
+        {
+            if (TaskStatus != TaskStatus.Working)
+                return false;
+            TaskStatus = TaskStatus.Completed;
+            return true;
+        }
 
         public TaskHandlerBase()
         {
@@ -31,6 +44,8 @@ namespace LearningFucker.Handler
         private TaskStatus taskStatus;
         private TaskForWork taskForWork;
         private Fucker fucker;
+
+        public Action<object, TaskStatus> StatusChanged { get; set; }
         public TaskForWork TaskForWork
         {
             get => taskForWork;
@@ -39,7 +54,7 @@ namespace LearningFucker.Handler
 
         protected Fucker Fucker { get => fucker; set => fucker = value; }
 
-        public TaskStatus TaskStatus { get => taskStatus; protected set => taskStatus = value; }
+        public TaskStatus TaskStatus { get => taskStatus; protected set { taskStatus = value; StatusChanged?.Invoke(this, value);  } }
     }
 
     public class TaskForWork
@@ -75,16 +90,16 @@ namespace LearningFucker.Handler
         public ITaskHandler Handler { get; internal set; }
         public LearningFucker.Models.Task Task { get; }
 
-        public Action<TaskForWork> Completed;
+        public event Action<TaskForWork> OnCompleted;
+
         private TaskStatus taskStatus;
         public TaskStatus TaskStatus { get=>taskStatus;
             set {
                 taskStatus = value;
                 if (taskStatus == TaskStatus.Completed)
-                {
-                    Completed(this);
-                }
+                    OnCompleted?.Invoke(this);
             }
+            
         }
 
         public DateTime StartTime { get; internal set; }
@@ -95,16 +110,29 @@ namespace LearningFucker.Handler
         {
             Handler = handler;
             ((TaskHandlerBase)Handler).TaskForWork = this;
+
+            handler.StatusChanged += new Action<object, TaskStatus>(( s, status) =>
+            {
+                this.TaskStatus = status;
+                if(TaskStatus == TaskStatus.Working)
+                {
+                    this.StartTime = DateTime.Now;
+                }
+                else if(TaskStatus == TaskStatus.Completed )
+                {
+                    this.EndTime = DateTime.Now;
+                }
+            });
         }
 
         public bool Start(Fucker fucker)
         {
-            if (Handler != null && Handler.TaskStatus != TaskStatus.Completed && Handler.TaskStatus != TaskStatus.Working)
-            {
-                return Handler.Start(fucker);
-            }
-            else
-                return false;
+            return Handler.Start(fucker);
+        }
+
+        public bool Stop()
+        {
+            return Handler.Stop();
         }
     }
 

@@ -26,92 +26,119 @@ namespace LearningFucker.Handler
 
         public async override void DoWork()
         {
-            Random random = new Random();
-            int id = random.Next(0, propertyList.List[0].SubNodes.Count - 1);
-
-            if (propertyList.List[0].SubNodes[id] == null)      //可能会死循环
+            try
             {
-                DoWork();
-                return;
+                Random random = new Random();
+                int id = random.Next(0, propertyList.List[0].SubNodes.Count - 1);
+
+                if (propertyList.List[0].SubNodes[id] == null)      //可能会死循环
+                {
+                    DoWork();
+                    return;
+                }
+
+                var context = propertyList.List[0].SubNodes[id];
+
+                courseList = await Fucker.GetElectiveCourseList(context);
+
+
+                DoContext();
             }
-
-            var context = propertyList.List[0].SubNodes[id];
-
-            courseList = await Fucker.GetElectiveCourseList(context);
-
-
-            DoContext();
+            catch(Exception ex)
+            {
+                Fucker.Worker.ReportError(ex.Message);
+                Stop();
+            }
         }
 
         private async void DoContext()
         {
-            Random random = new Random();
-            int id = random.Next(0, courseList.List.Count - 1);
-
-            if (courseList.List[id].Detail != null && courseList.List[id].Detail.Complete)      //可能会死循环
+            try
             {
-                DoContext();
-                return;
+                Random random = new Random();
+                int id = random.Next(0, courseList.List.Count - 1);
+
+                if (courseList.List[id].Detail != null && courseList.List[id].Detail.Complete)      //可能会死循环
+                {
+                    DoContext();
+                    return;
+                }
+
+                var course = courseList.List[id];
+
+                await Fucker.GetCourseDetail(course);
+                await Fucker.GetCourseAppendix(course);
+
+                if (course.Detail.WareList != null && course.Detail.WareList.Count > 0)
+                    DoStudy(course, course.Detail.WareList[0]);
+                else
+                    DoContext();
             }
-
-            var course = courseList.List[id];
-
-            await Fucker.GetCourseDetail(course);
-            if (course.Detail == null)
-                throw new Exception("获取课程详细信息时出错, 请重新开启程序!");
-            await Fucker.GetCourseAppendix(course);
-            if (course.Appendix == null)
-                throw new Exception("获取课程附加信息时出错, 请重新开启程序!");
-
-            if (course.Detail.WareList != null && course.Detail.WareList.Count > 0)
-                DoStudy(course, course.Detail.WareList[0]);
-            else
-                DoContext();
+            catch(Exception ex)
+            {
+                Fucker.Worker.ReportError(ex.Message);
+                Stop();
+            }
         }
 
         private async void DoStudy(ElectiveCourse course, WareDetail item)
         {
-            var study = await Fucker.StartStudy(course, item);
-            if (study == null)
-                throw new Exception("开始学习失败, 请重试!");
-            if (Studies == null)
-                studies = new List<Study>();
+            try
+            {
+                var study = await Fucker.StartStudy(course, item);
+                if (Studies == null)
+                    studies = new List<Study>();
 
-            if (await Fucker.GetStudyInfo(study))
-                study.InitIntegral = study.StudyIntegral;
+                if (await Fucker.GetStudyInfo(study))
+                    study.InitIntegral = study.StudyIntegral;
 
-            Studies.Add(study);
+                Studies.Add(study);
 
-            study.Start(Fucker);
-            study.StudyComplete = new Action<Study>(s => {
-                if (this.TaskStatus == TaskStatus.Working)
+                study.Start(Fucker);
+                study.StudyComplete = new Action<Study>(s =>
                 {
-                    var index = course.Detail.WareList.IndexOf(item);
-                    if (index == course.Detail.WareList.Count - 1)
-                        DoContext();
-                    else
+                    if (this.TaskStatus == TaskStatus.Working)
                     {
-                        index++;
-                        DoStudy(course, course.Detail.WareList[index]);
+                        var index = course.Detail.WareList.IndexOf(item);
+                        if (index == course.Detail.WareList.Count - 1)
+                            DoContext();
+                        else
+                        {
+                            index++;
+                            DoStudy(course, course.Detail.WareList[index]);
+                        }
                     }
-                }
-            });
+                });
+            }
+            catch(Exception ex)
+            {
+                Fucker.Worker.ReportError(ex.Message);
+                Stop();
+            }
         }
 
         private async void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            var study = Studies.FirstOrDefault(s => s.Complete == false);
-            if (study == null)
-                Stop();
-            else
+            try
             {
-                await Fucker.GetStudyInfo(study);
-                this.TaskForWork.Integral = study.StudyIntegral;
-
-                if (this.TaskForWork.LimitIntegral == this.TaskForWork.Integral)  //学习任务结束
+                var study = Studies.FirstOrDefault(s => s.Complete == false);
+                if (study == null)
+                    Stop();
+                else
                 {
-                    Complete();
+                    await Fucker.GetStudyInfo(study);
+                    this.TaskForWork.Integral = study.StudyIntegral;
+
+                    if (this.TaskForWork.LimitIntegral == this.TaskForWork.Integral)  //学习任务结束
+                    {
+                        Complete();
+                    }
                 }
+            }
+            catch(Exception ex)
+            {
+                Fucker.Worker.ReportError(ex.Message);
+                Stop();
             }
         }
 
@@ -126,61 +153,72 @@ namespace LearningFucker.Handler
 
         private async void Start()
         {
-            var propertyList = await Fucker.GetPropertyList();
-            if (propertyList == null || propertyList.List == null || propertyList.List.Count == 0)
-                throw new Exception("not implemented");
+            try
+            {
+                var propertyList = await Fucker.GetPropertyList();
 
-            this.propertyList = propertyList;
+                this.propertyList = propertyList;
 
-            var courselist = await Fucker.GetElectiveCourseList(propertyList.List[0].SubNodes[0]);
-            if(courselist == null || courselist.List == null || courselist.List.Count == 0)
-                throw new Exception("not implemented");
+                var courselist = await Fucker.GetElectiveCourseList(propertyList.List[0].SubNodes[0]);
 
-            
-            await Fucker.GetCourseAppendix(courselist.List[0]);
-            if (courselist.List[0].Appendix == null)
-                throw new Exception("获取课程附加信息时出错, 请重新开启程序!");
 
-            this.TaskForWork.LimitIntegral = courselist.List[0].Appendix.MaxStudyIntegral;
-            timer.Start();
-            DoWork();
+                await Fucker.GetCourseAppendix(courselist.List[0]);
+
+                this.TaskForWork.LimitIntegral = courselist.List[0].Appendix.MaxStudyIntegral;
+                timer.Start();
+                DoWork();
+            }
+            catch(Exception ex)
+            {
+                Fucker.Worker.ReportError(ex.Message);
+                Stop();
+            }
         }
 
         public override bool Stop()
         {
-            TaskStatus = TaskStatus.Stopping;
-            if (Studies != null)
+            if (base.Stop())
             {
-                foreach (var item in Studies.Where(s => s.Complete == false))
+                if (Studies != null)
                 {
-                    item.Stop();
+                    foreach (var item in Studies.Where(s => s.Complete == false))
+                    {
+                        item.Stop();
+                    }
                 }
+
+                if (timer.Enabled)
+                    timer.Stop();
+
+                TaskStatus = TaskStatus.Stopped;
+                TaskForWork.TaskStatus = TaskStatus.Stopped;
+                return true;
             }
-
-            if (timer.Enabled)
-                timer.Stop();
-
-            TaskStatus = TaskStatus.Stopped;
-            TaskForWork.TaskStatus = TaskStatus.Stopped;
-            return true;
+            else
+                return false;
+            
         }
 
         protected override bool Complete()
         {
-            if (Studies != null)
+            if (base.Complete())
             {
-                foreach (var item in Studies.Where(s => s.Complete == false))
+                if (Studies != null)
                 {
-                    item.Stop();
+                    foreach (var item in Studies.Where(s => s.Complete == false))
+                    {
+                        item.Stop();
+                    }
                 }
+
+                if (timer.Enabled)
+                    timer.Stop();
+
+ 
+                return true;
             }
-
-            if (timer.Enabled)
-                timer.Stop();
-
-            TaskStatus = TaskStatus.Completed;
-            TaskForWork.TaskStatus = TaskStatus.Completed;
-            return true;
+            else
+                return false;
         }
     }
 }

@@ -25,73 +25,92 @@ namespace LearningFucker.Handler
 
         public async override void DoWork()
         {
-            Random random = new Random();
-            int id = random.Next(0, courseList.List.Count - 1);
-
-            if (courseList.List[id].Detail != null && courseList.List[id].Detail.Complete)      //可能会死循环
+            try
             {
-                DoWork();
-                return;
+                Random random = new Random();
+                int id = random.Next(0, courseList.List.Count - 1);
+
+                if (courseList.List[id].Detail != null && courseList.List[id].Detail.Complete)      //可能会死循环
+                {
+                    DoWork();
+                    return;
+                }
+
+                var course = courseList.List[id];
+
+                await Fucker.GetCourseDetail(course);
+                await Fucker.GetCourseAppendix(course);
+
+                if (course.Detail.WareList != null && course.Detail.WareList.Count > 0)
+                    DoStudy(course, course.Detail.WareList[0]);
+                else
+                    DoWork();
             }
-
-            var course = courseList.List[id];
-
-            await Fucker.GetCourseDetail(course);
-            if (course.Detail == null)
-                throw new Exception("获取课程详细信息时出错, 请重新开启程序!");
-            await Fucker.GetCourseAppendix(course);
-            if (course.Appendix == null)
-                throw new Exception("获取课程附加信息时出错, 请重新开启程序!");
-
-            if (course.Detail.WareList != null && course.Detail.WareList.Count > 0)
-                DoStudy(course, course.Detail.WareList[0]);
-            else
-                DoWork();
+            catch(Exception ex)
+            {
+                Fucker.Worker.ReportError(ex.Message);
+                Stop();
+            }
         }
 
         private async void DoStudy(Course course, WareDetail item)
         {
-            var study = await Fucker.StartStudy(course, item);
-            if (study == null)
-                throw new Exception("开始学习失败, 请重试!");
-            if (Studies == null)
-                studies = new List<Study>();
+            try
+            {
+                var study = await Fucker.StartStudy(course, item);
+                if (Studies == null)
+                    studies = new List<Study>();
 
-            if (await Fucker.GetStudyInfo(study))
-                study.InitIntegral = study.StudyIntegral;
-            
-            Studies.Add(study);
+                if (await Fucker.GetStudyInfo(study))
+                    study.InitIntegral = study.StudyIntegral;
 
-            study.Start(Fucker);
-            study.StudyComplete = new Action<Study>(s=> {
-                if(this.TaskStatus == TaskStatus.Working)
+                Studies.Add(study);
+
+                study.Start(Fucker);
+                study.StudyComplete = new Action<Study>(s =>
                 {
-                    var index = course.Detail.WareList.IndexOf(item);
-                    if (index == course.Detail.WareList.Count - 1)
-                        DoWork();
-                    else
+                    if (this.TaskStatus == TaskStatus.Working)
                     {
-                        index++;
-                        DoStudy(course, course.Detail.WareList[index]);
+                        var index = course.Detail.WareList.IndexOf(item);
+                        if (index == course.Detail.WareList.Count - 1)
+                            DoWork();
+                        else
+                        {
+                            index++;
+                            DoStudy(course, course.Detail.WareList[index]);
+                        }
                     }
-                }
-            });
+                });
+            }
+            catch(Exception ex)
+            {
+                Fucker.Worker.ReportError(ex.Message);
+                Stop();
+            }
         }
 
         private async void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            var study = Studies.FirstOrDefault(s => s.Complete == false);
-            if (study == null)
-                Stop();
-            else
+            try
             {
-                await Fucker.GetStudyInfo(study);
-                this.TaskForWork.Integral = study.StudyIntegral;
-
-                if (this.TaskForWork.LimitIntegral == this.TaskForWork.Integral)  //学习任务结束
+                var study = Studies.FirstOrDefault(s => s.Complete == false);
+                if (study == null)
+                    Stop();
+                else
                 {
-                    Complete();
+                    await Fucker.GetStudyInfo(study);
+                    this.TaskForWork.Integral = study.StudyIntegral;
+
+                    if (this.TaskForWork.LimitIntegral == this.TaskForWork.Integral)  //学习任务结束
+                    {
+                        Complete();
+                    }
                 }
+            }
+            catch(Exception ex)
+            {
+                Fucker.Worker.ReportError(ex.Message);
+                Stop();
             }
         }
 
@@ -106,55 +125,67 @@ namespace LearningFucker.Handler
 
         private async void Start()
         {
-            var courseList = await Fucker.GetCourseList(0, 100);
-            if (courseList == null || courseList.List == null || courseList.List.Count == 0)
-                throw new Exception("not implemented");
+            try
+            {
+                var courseList = await Fucker.GetCourseList(0, 100);
 
-            this.courseList = courseList;
-            await Fucker.GetCourseAppendix(courseList.List[0]);
-            if (courseList.List[0].Appendix == null)
-                throw new Exception("获取课程附加信息时出错, 请重新开启程序!");
+                this.courseList = courseList;
+                await Fucker.GetCourseAppendix(courseList.List[0]);
 
-            this.TaskForWork.LimitIntegral = courseList.List[0].Appendix.MaxStudyIntegral;
-            timer.Start();
-            DoWork();
+                this.TaskForWork.LimitIntegral = courseList.List[0].Appendix.MaxStudyIntegral;
+                timer.Start();
+                DoWork();
+            }
+            catch(Exception ex)
+            {
+                Fucker.Worker.ReportError(ex.Message);
+                Stop();
+            }
         }
 
         public override bool Stop()
         {
-            TaskStatus = TaskStatus.Stopping;
-            if (Studies != null)
+            if (base.Stop())
             {
-                foreach( var item in Studies.Where(s=>s.Complete == false))
+                if (Studies != null)
                 {
-                    item.Stop();
+                    foreach (var item in Studies.Where(s => s.Complete == false))
+                    {
+                        item.Stop();
+                    }
                 }
+
+                if (timer.Enabled)
+                    timer.Stop();
+
+                TaskStatus = TaskStatus.Stopped;
+                return true;
             }
-
-            if (timer.Enabled)
-                timer.Stop();
-
-            TaskStatus = TaskStatus.Stopped;
-            TaskForWork.TaskStatus = TaskStatus.Stopped;
-            return true;
+            else
+                return false;
+            
         }
 
         protected override bool Complete()
         {
-            if (Studies != null)
+            if (base.Complete())
             {
-                foreach (var item in Studies.Where(s => s.Complete == false))
+                if (Studies != null)
                 {
-                    item.Stop();
+                    foreach (var item in Studies.Where(s => s.Complete == false))
+                    {
+                        item.Stop();
+                    }
                 }
+
+                if (timer.Enabled)
+                    timer.Stop();
+
+                return true;
             }
-
-            if (timer.Enabled)
-                timer.Stop();
-
-            TaskStatus = TaskStatus.Completed;
-            TaskForWork.TaskStatus = TaskStatus.Completed;
-            return true;
+            else
+                return false;
+            
         }
     }
 }

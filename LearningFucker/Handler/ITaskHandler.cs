@@ -18,5 +18,7 @@ namespace LearningFucker.Handler
 
         TaskStatus TaskStatus { get; }
 
+        Action<object, TaskStatus> StatusChanged { get; set; }
+
     }
 }

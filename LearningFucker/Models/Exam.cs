@@ -328,6 +328,69 @@ namespace LearningFucker.Models
         public List<Question> Questions { get; set; }
     }
 
+    public class BreakthroughResult
+    {
+        [JsonProperty("resultId")]
+        public string ResultId { get; set; }
+
+        /// <summary>
+        /// 状态 ,现在是 fail是成功
+        /// </summary>
+        public string Status { get; set; }
+
+        /// <summary>
+        /// 开始答题时间
+        /// </summary>
+        public string BTime { get; set; }
+        /// <summary>
+        /// 结束答题时间
+        /// </summary>
+        public string ETime { get; set; }
+
+        /// <summary>
+        /// 答题时间
+        /// </summary>
+        public int UseSec { get; set; }
+
+        /// <summary>
+        /// 得分
+        /// </summary>
+        public decimal Score { get; set; }
+
+        /// <summary>
+        /// 是否通过
+        /// </summary>
+        public int IsPass { get; set; }
+
+
+        /// <summary>
+        /// 题目数量
+        /// </summary>
+        public int TotalNum { get; set; }
+
+
+        /// <summary>
+        /// 正确数量
+        /// </summary>
+        public int RightNum { get; set; }
+
+        /// <summary>
+        /// 答案
+        /// </summary>
+        public string Answer { get; set; }
+
+        /// <summary>
+        /// 获得积分
+        /// </summary>
+        public decimal Integral { get; set; }
+
+        /// <summary>
+        /// 正确答案
+        /// </summary>
+        [JsonProperty("list")]
+        public List<Question> Questions { get; set; }
+    }
+
     public class Answer
     {
         [JsonProperty("tmid")]

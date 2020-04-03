@@ -176,14 +176,14 @@ namespace LearningFucker
             var row = grid.GetRow(e.RowHandle) as LearningFucker.Models.Task;
 
 
-            //if (row.LimitIntegral <= row.Integral || row.UncompeletedItemCount == 0)
-            //{
-            //    e.RepositoryItem.ReadOnly = true;
-            //}
-            //else
-            //{
-            //    e.RepositoryItem.ReadOnly = false;
-            //}
+            if (row.LimitIntegral <= row.Integral || row.UncompeletedItemCount == 0)
+            {
+                e.RepositoryItem.ReadOnly = true;
+            }
+            else
+            {
+                e.RepositoryItem.ReadOnly = false;
+            }
         }
 
         private void BarButtonItem2_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
@@ -204,6 +204,7 @@ namespace LearningFucker
             }
             else
             {
+                
                 this.progressBar.Visibility = DevExpress.XtraBars.BarItemVisibility.Always;
                 List<int> tasks = new List<int>();
                 foreach (var item in selectedTask)

@@ -130,6 +130,7 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Fucker.cs" />
+    <Compile Include="Handler\BreakthroughHandler.cs" />
     <Compile Include="Handler\ElectiveHandler.cs" />
     <Compile Include="Handler\ExamHandler.cs" />
     <Compile Include="Handler\ExerciseHandler.cs" />
@@ -138,6 +139,7 @@
     <Compile Include="Handler\StudyHandler.cs" />
     <Compile Include="Handler\TaskHandlerBase.cs" />
     <Compile Include="Models\AppInfo.cs" />
+    <Compile Include="Models\Breakthrough.cs" />
     <Compile Include="Models\Combat.cs" />
     <Compile Include="Models\CourseList.cs" />
     <Compile Include="Models\Exam.cs" />

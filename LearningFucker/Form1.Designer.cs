@@ -80,8 +80,8 @@
             this.repositoryItemCheckEdit1 = new DevExpress.XtraEditors.Repository.RepositoryItemCheckEdit();
             this.repositoryItemImageEdit1 = new DevExpress.XtraEditors.Repository.RepositoryItemImageEdit();
             this.layoutControlGroup1 = new DevExpress.XtraLayout.LayoutControlGroup();
-            this.layoutControlItem3 = new DevExpress.XtraLayout.LayoutControlItem();
             this.dxError = new DevExpress.XtraEditors.DXErrorProvider.DXErrorProvider(this.components);
+            this.layoutControlItem3 = new DevExpress.XtraLayout.LayoutControlItem();
             ((System.ComponentModel.ISupportInitialize)(this.barManager1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.repositoryItemMarqueeProgressBar1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutLogin)).BeginInit();
@@ -108,8 +108,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.repositoryItemCheckEdit1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.repositoryItemImageEdit1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutControlGroup1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.layoutControlItem3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dxError)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.layoutControlItem3)).BeginInit();
             this.SuspendLayout();
             // 
             // barManager1
@@ -325,7 +325,7 @@
             this.layoutLogin.Controls.Add(this.textEdit2);
             this.layoutLogin.Controls.Add(this.simpleButton11);
             this.layoutLogin.Controls.Add(this.checkEdit1);
-            this.layoutLogin.Location = new System.Drawing.Point(0, 55);
+            this.layoutLogin.Location = new System.Drawing.Point(12, 434);
             this.layoutLogin.Name = "layoutLogin";
             this.layoutLogin.OptionsCustomizationForm.DesignTimeCustomizationFormPositionAndSize = new System.Drawing.Rectangle(940, 303, 650, 400);
             this.layoutLogin.Root = this.Root;
@@ -467,7 +467,7 @@
             // layoutTask
             // 
             this.layoutTask.Controls.Add(this.gridControl1);
-            this.layoutTask.Location = new System.Drawing.Point(129, 39);
+            this.layoutTask.Location = new System.Drawing.Point(127, 62);
             this.layoutTask.Name = "layoutTask";
             this.layoutTask.OptionsCustomizationForm.DesignTimeCustomizationFormPositionAndSize = new System.Drawing.Rectangle(1191, 438, 650, 400);
             this.layoutTask.Root = this.layoutControlGroup1;
@@ -638,6 +638,10 @@
             this.layoutControlGroup1.Size = new System.Drawing.Size(987, 534);
             this.layoutControlGroup1.TextVisible = false;
             // 
+            // dxError
+            // 
+            this.dxError.ContainerControl = this;
+            // 
             // layoutControlItem3
             // 
             this.layoutControlItem3.Control = this.gridControl1;
@@ -646,10 +650,6 @@
             this.layoutControlItem3.Size = new System.Drawing.Size(967, 514);
             this.layoutControlItem3.TextSize = new System.Drawing.Size(0, 0);
             this.layoutControlItem3.TextVisible = false;
-            // 
-            // dxError
-            // 
-            this.dxError.ContainerControl = this;
             // 
             // Form1
             // 
@@ -691,8 +691,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.repositoryItemCheckEdit1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.repositoryItemImageEdit1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutControlGroup1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.layoutControlItem3)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dxError)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.layoutControlItem3)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -731,7 +731,6 @@
         private DevExpress.XtraGrid.Columns.GridColumn colIntegral;
         private DevExpress.XtraGrid.Columns.GridColumn colExplain;
         private DevExpress.XtraLayout.LayoutControlGroup layoutControlGroup1;
-        private DevExpress.XtraLayout.LayoutControlItem layoutControlItem3;
         private DevExpress.XtraGrid.Columns.GridColumn colTaskStatus;
         private DevExpress.XtraGrid.Columns.GridColumn colIsSelect;
         private DevExpress.XtraEditors.CheckEdit checkEdit1;
@@ -752,6 +751,7 @@
         private DevExpress.XtraBars.BarStaticItem barTodyIntegral;
         private DevExpress.XtraBars.BarStaticItem barWeekIntegral;
         private DevExpress.XtraBars.BarStaticItem barSummaryIntegral;
+        private DevExpress.XtraLayout.LayoutControlItem layoutControlItem3;
     }
 }
 

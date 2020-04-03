@@ -13,62 +13,76 @@ namespace LearningFucker.Handler
 
         public async override void DoWork()
         {
-            if (this.TaskStatus == TaskStatus.Stopping)
+            try
             {
-                TaskStatus = TaskStatus.Stopped;
-                TaskForWork.TaskStatus = TaskStatus.Stopped;
-                return;
+                if (this.TaskStatus == TaskStatus.Stopping)
+                {
+                    TaskStatus = TaskStatus.Stopped;
+                    return;
+                }
+
+                Random random = new Random();
+                int id = random.Next(0, courseList.List.Count - 1);
+
+                var course = courseList.List[id];
+
+                var integral = await StartExercise(course);
+                TaskForWork.Integral += integral;
+                if (TaskForWork.LimitIntegral <= TaskForWork.Integral)
+                {
+                    this.Complete();
+                }
+                else
+                {
+                    DoWork();
+                }
             }
-
-            Random random = new Random();
-            int id = random.Next(0, courseList.List.Count - 1);
-
-            var course = courseList.List[id];
-
-            var integral = await StartExercise(course);
-            TaskForWork.Integral += integral;
-            if (TaskForWork.LimitIntegral <= TaskForWork.Integral)
+            catch(Exception ex)
             {
-                this.Complete();
-            }
-            else
-            {
-                DoWork();
+                Fucker.Worker.ReportError(ex.Message);
+                Stop();
             }
         }
 
 
         public async Task<decimal> StartExercise(ElectiveCourse course)
         {
-            
-            List<ExerciseAnswer> answers = new List<ExerciseAnswer>();
-            
-            if (!await Fucker.StartExercise(course))
-                return 0;
-
-            if (course.Exercises == null || course.Exercises.Count == 0)
-                return 0;
-
-            var paper = course.Exercises[course.Exercises.Count - 1];
-            answers.Clear();
-            foreach (var item in paper.Questions)
+            try
             {
-                ExerciseAnswer answer = new ExerciseAnswer();
-                answer.TmID = item.TmID;
-                answers.Add(answer);
+                List<ExerciseAnswer> answers = new List<ExerciseAnswer>();
 
-                answer.AnswerContent = item.Answers.Replace(";", ",");
+                if (!await Fucker.StartExercise(course))
+                    return 0;
+
+                if (course.Exercises == null || course.Exercises.Count == 0)
+                    return 0;
+
+                var paper = course.Exercises[course.Exercises.Count - 1];
+                answers.Clear();
+                foreach (var item in paper.Questions)
+                {
+                    ExerciseAnswer answer = new ExerciseAnswer();
+                    answer.TmID = item.TmID;
+                    answers.Add(answer);
+
+                    answer.AnswerContent = item.Answers.Replace(";", ",");
+                }
+
+                if (!await Fucker.HandIn(course, paper, answers, 5))
+                    return 0;
+
+                if (await Fucker.GetResult(paper.Result))
+                {
+                    return paper.Result.Integral;
+                }
+                else
+                {
+                    return 0;
+                }
             }
-
-            if (!await Fucker.HandIn(course, paper, answers, 5))
-                return 0;
-
-            if (await Fucker.GetResult(paper.Result))
+            catch(Exception ex)
             {
-                return paper.Result.Integral;
-            }
-            else
-            {
+                Fucker.Worker.ReportError(ex.Message);
                 return 0;
             }
         }
@@ -84,54 +98,38 @@ namespace LearningFucker.Handler
 
         public async void Start()
         {
-            var propertyList = await Fucker.GetPropertyList();
-            if (propertyList == null || propertyList.List == null || propertyList.List.Count == 0)
-                throw new Exception("not implemented");
-
-            this.courseList = new ElectiveCourseList();
-            this.courseList.List = new List<ElectiveCourse>();
-
-            propertyList.List.ForEach(s =>
+            try
             {
-                s.SubNodes.ForEach(async n =>
+                var propertyList = await Fucker.GetPropertyList();
+
+                this.courseList = new ElectiveCourseList();
+                this.courseList.List = new List<ElectiveCourse>();
+
+                propertyList.List.ForEach(s =>
                 {
-                    var courselist = await Fucker.GetElectiveCourseList(n);
-                    if (courselist == null || courselist.List == null || courselist.List.Count == 0)
-                        throw new Exception("not implemented");
-                    this.courseList.Count += courselist.Count;
-                    this.courseList.List.AddRange(courselist.List);
+                    s.SubNodes.ForEach(async n =>
+                    {
+                        var courselist = await Fucker.GetElectiveCourseList(n);
+                        this.courseList.Count += courselist.Count;
+                        this.courseList.List.AddRange(courselist.List);
 
+                    });
                 });
-            });
 
-            var list = await Fucker.GetElectiveCourseList(propertyList.List[0].SubNodes[0]);
-            if(list == null || list.List == null || list.List.Count == 0)
-                throw new Exception("not implemented");
+                var list = await Fucker.GetElectiveCourseList(propertyList.List[0].SubNodes[0]);
 
-            await Fucker.GetCourseAppendix(list.List[0]);
-            if (list.List[0].Appendix == null)
-                throw new Exception("获取课程附加信息时出错, 请重新开启程序!");
+                await Fucker.GetCourseAppendix(list.List[0]);
 
-            this.TaskForWork.LimitIntegral = list.List[0].Appendix.MaxExamIntegral;
-            DoWork();
-        }
-
-        public override bool Stop()
-        {
-            if (TaskStatus == TaskStatus.Working)
-            {
-                TaskStatus = TaskStatus.Stopping;
-                return true;
+                this.TaskForWork.LimitIntegral = list.List[0].Appendix.MaxExamIntegral;
+                DoWork();
             }
-            else
-                return false;
+            catch(Exception ex)
+            {
+                Fucker.Worker.ReportError(ex.Message);
+                Stop();
+            }
         }
 
-        protected override bool Complete()
-        {
-            TaskStatus = TaskStatus.Completed;
-            TaskForWork.TaskStatus = TaskStatus.Completed;
-            return true;
-        }
+
     }
 }

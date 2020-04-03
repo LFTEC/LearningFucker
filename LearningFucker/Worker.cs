@@ -186,28 +186,35 @@ namespace LearningFucker
                     case 14:
                         task = TaskList.FirstOrDefault(s => s.TaskType == item);
                         TaskForWork taskForWork = new TaskForWork(task, new StudyHandler());
-                        taskForWork.Completed = new Action<TaskForWork>(WorkItemCompleted);
+                        taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
                         WorkList.Add(taskForWork);
 
                         taskForWork = new TaskForWork(task, new ExamHandler());
-                        taskForWork.Completed = new Action<TaskForWork>(WorkItemCompleted);
+                        taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
                         WorkList.Add(taskForWork);
 
                         break;
                     case 2:
                         task = TaskList.FirstOrDefault(s => s.TaskType == item);
                         taskForWork = new TaskForWork(task, new ElectiveHandler());
-                        taskForWork.Completed = new Action<TaskForWork>(WorkItemCompleted);
+                        taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
                         WorkList.Add(taskForWork);
 
                         taskForWork = new TaskForWork(task, new ExerciseHandler());
-                        taskForWork.Completed = new Action<TaskForWork>(WorkItemCompleted);
+                        taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
                         WorkList.Add(taskForWork);
                         break;
                     case 13:
                         task = TaskList.FirstOrDefault(s => s.TaskType == item);
                         taskForWork = new TaskForWork(task.LimitIntegral, task.Integral, task, new PKHandler());
-                        taskForWork.Completed = new Action<TaskForWork>(WorkItemCompleted);
+                        taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
+                        WorkList.Add(taskForWork);
+                        break;
+
+                    case 11:
+                        task = TaskList.FirstOrDefault(s => s.TaskType == item);
+                        taskForWork = new TaskForWork(task.LimitIntegral, task.Integral, task, new BreakthroughHandler());
+                        taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
                         WorkList.Add(taskForWork);
                         break;
                 }
