@@ -1,24 +1,15 @@
-﻿using System;
+﻿using DevExpress.XtraEditors;
+using DevExpress.XtraGrid.Views.Grid;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
-using System.Net.Http;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Threading.Tasks;
-using System.Web;
-using LearningFucker.Models;
-using System.Configuration;
-using System.Security.Cryptography;
-using System.Diagnostics;
-using System.IO;
-using DevExpress.XtraGrid.Views.Grid;
-using DevExpress.XtraEditors.Repository;
-using DevExpress.XtraEditors;
 
 namespace LearningFucker
 {
