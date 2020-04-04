@@ -120,9 +120,6 @@
   <metadata name="barManager1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
-  <metadata name="bindingSource1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>148, 17</value>
-  </metadata>
   <metadata name="imageCollection1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>387, 17</value>
   </metadata>
@@ -135,7 +132,7 @@
         a2VuPWIwM2Y1ZjdmMTFkNTBhM2EFAQAAAChEZXZFeHByZXNzLlV0aWxzLkltYWdlQ29sbGVjdGlvblN0
         cmVhbWVyAgAAAAlJbWFnZVNpemUERGF0YQQHE1N5c3RlbS5EcmF3aW5nLlNpemUDAAAAAgIAAAAF/P//
         /xNTeXN0ZW0uRHJhd2luZy5TaXplAgAAAAV3aWR0aAZoZWlnaHQAAAgIAwAAABAAAAAQAAAACQUAAAAP
-        BQAAABsPAAAC7gEAAIlQTkcNChoKAAAADUlIRFIAAAAQAAAAEAgGAAAAH/P/YQAAAARnQU1BAACxjwv8
+        BQAAAKkTAAAC7gEAAIlQTkcNChoKAAAADUlIRFIAAAAQAAAAEAgGAAAAH/P/YQAAAARnQU1BAACxjwv8
         YQUAAAAZdEVYdFNvZnR3YXJlAEFkb2JlIEltYWdlUmVhZHlxyWU8AAAAEXRFWHRUaXRsZQBQYXVzZTtT
         dG9wOzuKejwAAAFjSURBVDhPrdPBK4NxHMfxof0OnP0R1EpKSqmVVku2crEbkoODw+ZAbGJlZIpIMrWk
         qM3koDbbYUWrNWEO0pqoKSIjKzUSfTwftnr0q+fkXd/69Hp+10f3n1WsRi0BX8x6r1x+NWoN0X7dGqLx
@@ -199,9 +196,35 @@
         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
-        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
+        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
+        YIIL
 </value>
   </data>
+  <metadata name="bindingSource1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>148, 17</value>
+  </metadata>
+  <metadata name="imageCollection1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>387, 17</value>
+  </metadata>
   <metadata name="dxError.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>293, 17</value>
   </metadata>

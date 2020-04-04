@@ -43,13 +43,16 @@
             this.barStatusText = new DevExpress.XtraBars.BarStaticItem();
             this.progressBar = new DevExpress.XtraBars.BarEditItem();
             this.repositoryItemMarqueeProgressBar1 = new DevExpress.XtraEditors.Repository.RepositoryItemMarqueeProgressBar();
+            this.barIntegralRank = new DevExpress.XtraBars.BarStaticItem();
             this.barTodyIntegral = new DevExpress.XtraBars.BarStaticItem();
             this.barWeekIntegral = new DevExpress.XtraBars.BarStaticItem();
             this.barSummaryIntegral = new DevExpress.XtraBars.BarStaticItem();
+            this.barListItem1 = new DevExpress.XtraBars.BarListItem();
             this.barDockControlTop = new DevExpress.XtraBars.BarDockControl();
             this.barDockControlBottom = new DevExpress.XtraBars.BarDockControl();
             this.barDockControlLeft = new DevExpress.XtraBars.BarDockControl();
             this.barDockControlRight = new DevExpress.XtraBars.BarDockControl();
+            this.imageCollection1 = new DevExpress.Utils.ImageCollection(this.components);
             this.layoutLogin = new DevExpress.XtraLayout.LayoutControl();
             this.textEdit11 = new DevExpress.XtraEditors.TextEdit();
             this.textEdit2 = new DevExpress.XtraEditors.TextEdit();
@@ -75,15 +78,15 @@
             this.colExplain = new DevExpress.XtraGrid.Columns.GridColumn();
             this.colTaskStatus = new DevExpress.XtraGrid.Columns.GridColumn();
             this.repositoryItemImageComboBox1 = new DevExpress.XtraEditors.Repository.RepositoryItemImageComboBox();
-            this.imageCollection1 = new DevExpress.Utils.ImageCollection(this.components);
             this.colIsSelect = new DevExpress.XtraGrid.Columns.GridColumn();
             this.repositoryItemCheckEdit1 = new DevExpress.XtraEditors.Repository.RepositoryItemCheckEdit();
             this.repositoryItemImageEdit1 = new DevExpress.XtraEditors.Repository.RepositoryItemImageEdit();
             this.layoutControlGroup1 = new DevExpress.XtraLayout.LayoutControlGroup();
-            this.dxError = new DevExpress.XtraEditors.DXErrorProvider.DXErrorProvider(this.components);
             this.layoutControlItem3 = new DevExpress.XtraLayout.LayoutControlItem();
+            this.dxError = new DevExpress.XtraEditors.DXErrorProvider.DXErrorProvider(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.barManager1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.repositoryItemMarqueeProgressBar1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.imageCollection1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutLogin)).BeginInit();
             this.layoutLogin.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.textEdit11.Properties)).BeginInit();
@@ -104,12 +107,11 @@
             ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.gridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.repositoryItemImageComboBox1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.imageCollection1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.repositoryItemCheckEdit1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.repositoryItemImageEdit1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutControlGroup1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dxError)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutControlItem3)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dxError)).BeginInit();
             this.SuspendLayout();
             // 
             // barManager1
@@ -123,6 +125,7 @@
             this.barManager1.DockControls.Add(this.barDockControlLeft);
             this.barManager1.DockControls.Add(this.barDockControlRight);
             this.barManager1.Form = this;
+            this.barManager1.Images = this.imageCollection1;
             this.barManager1.Items.AddRange(new DevExpress.XtraBars.BarItem[] {
             this.barBtnLogin,
             this.barSubItem1,
@@ -134,9 +137,11 @@
             this.progressBar,
             this.barWeekIntegral,
             this.barTodyIntegral,
-            this.barSummaryIntegral});
+            this.barSummaryIntegral,
+            this.barIntegralRank,
+            this.barListItem1});
             this.barManager1.MainMenu = this.bar2;
-            this.barManager1.MaxItemId = 21;
+            this.barManager1.MaxItemId = 25;
             this.barManager1.RepositoryItems.AddRange(new DevExpress.XtraEditors.Repository.RepositoryItem[] {
             this.repositoryItemMarqueeProgressBar1});
             this.barManager1.StatusBar = this.bar3;
@@ -149,7 +154,7 @@
             this.bar1.DockStyle = DevExpress.XtraBars.BarDockStyle.Top;
             this.bar1.LinksPersistInfo.AddRange(new DevExpress.XtraBars.LinkPersistInfo[] {
             new DevExpress.XtraBars.LinkPersistInfo(this.barBtnLogin, true),
-            new DevExpress.XtraBars.LinkPersistInfo(this.barButtonItem2),
+            new DevExpress.XtraBars.LinkPersistInfo(this.barButtonItem2, true),
             new DevExpress.XtraBars.LinkPersistInfo(this.barButtonItem3),
             new DevExpress.XtraBars.LinkPersistInfo(this.barButtonItem4)});
             this.bar1.Text = "Tools";
@@ -158,6 +163,7 @@
             // 
             this.barBtnLogin.Caption = "登录";
             this.barBtnLogin.Id = 0;
+            this.barBtnLogin.ImageOptions.ImageIndex = 9;
             this.barBtnLogin.Name = "barBtnLogin";
             this.barBtnLogin.ItemClick += new DevExpress.XtraBars.ItemClickEventHandler(this.BarBtnLogin_ItemClick);
             // 
@@ -165,6 +171,7 @@
             // 
             this.barButtonItem2.Caption = "刷新";
             this.barButtonItem2.Id = 9;
+            this.barButtonItem2.ImageOptions.ImageIndex = 10;
             this.barButtonItem2.Name = "barButtonItem2";
             this.barButtonItem2.ItemClick += new DevExpress.XtraBars.ItemClickEventHandler(this.BarButtonItem2_ItemClick);
             // 
@@ -172,14 +179,18 @@
             // 
             this.barButtonItem3.Caption = "开始刷分";
             this.barButtonItem3.Id = 10;
+            this.barButtonItem3.ImageOptions.ImageIndex = 8;
             this.barButtonItem3.Name = "barButtonItem3";
             this.barButtonItem3.ItemClick += new DevExpress.XtraBars.ItemClickEventHandler(this.BarButtonItem3_ItemClick);
             // 
             // barButtonItem4
             // 
             this.barButtonItem4.Caption = "停止";
+            this.barButtonItem4.Enabled = false;
             this.barButtonItem4.Id = 11;
+            this.barButtonItem4.ImageOptions.ImageIndex = 7;
             this.barButtonItem4.Name = "barButtonItem4";
+            this.barButtonItem4.ItemClick += new DevExpress.XtraBars.ItemClickEventHandler(this.barButtonItem4_ItemClick);
             // 
             // bar2
             // 
@@ -206,6 +217,10 @@
             // 
             this.barSubItem2.Caption = "操作";
             this.barSubItem2.Id = 12;
+            this.barSubItem2.LinksPersistInfo.AddRange(new DevExpress.XtraBars.LinkPersistInfo[] {
+            new DevExpress.XtraBars.LinkPersistInfo(this.barButtonItem2),
+            new DevExpress.XtraBars.LinkPersistInfo(this.barButtonItem3, true),
+            new DevExpress.XtraBars.LinkPersistInfo(this.barButtonItem4)});
             this.barSubItem2.Name = "barSubItem2";
             // 
             // bar3
@@ -218,9 +233,11 @@
             this.bar3.LinksPersistInfo.AddRange(new DevExpress.XtraBars.LinkPersistInfo[] {
             new DevExpress.XtraBars.LinkPersistInfo(this.barStatusText),
             new DevExpress.XtraBars.LinkPersistInfo(this.progressBar, true),
+            new DevExpress.XtraBars.LinkPersistInfo(this.barIntegralRank, true),
             new DevExpress.XtraBars.LinkPersistInfo(this.barTodyIntegral, true),
             new DevExpress.XtraBars.LinkPersistInfo(this.barWeekIntegral, true),
-            new DevExpress.XtraBars.LinkPersistInfo(this.barSummaryIntegral, true)});
+            new DevExpress.XtraBars.LinkPersistInfo(this.barSummaryIntegral, true),
+            new DevExpress.XtraBars.LinkPersistInfo(this.barListItem1)});
             this.bar3.OptionsBar.AllowQuickCustomization = false;
             this.bar3.OptionsBar.DrawDragBorder = false;
             this.bar3.OptionsBar.UseWholeRow = true;
@@ -250,6 +267,18 @@
             this.repositoryItemMarqueeProgressBar1.MarqueeAnimationSpeed = 150;
             this.repositoryItemMarqueeProgressBar1.MarqueeWidth = 30;
             this.repositoryItemMarqueeProgressBar1.Name = "repositoryItemMarqueeProgressBar1";
+            // 
+            // barIntegralRank
+            // 
+            this.barIntegralRank.Border = DevExpress.XtraEditors.Controls.BorderStyles.NoBorder;
+            this.barIntegralRank.Caption = "0";
+            this.barIntegralRank.Hint = "积分排名";
+            this.barIntegralRank.Id = 21;
+            this.barIntegralRank.ItemAppearance.Normal.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.barIntegralRank.ItemAppearance.Normal.ForeColor = System.Drawing.Color.Red;
+            this.barIntegralRank.ItemAppearance.Normal.Options.UseFont = true;
+            this.barIntegralRank.ItemAppearance.Normal.Options.UseForeColor = true;
+            this.barIntegralRank.Name = "barIntegralRank";
             // 
             // barTodyIntegral
             // 
@@ -287,37 +316,79 @@
             this.barSummaryIntegral.ItemAppearance.Normal.Options.UseForeColor = true;
             this.barSummaryIntegral.Name = "barSummaryIntegral";
             // 
+            // barListItem1
+            // 
+            this.barListItem1.Caption = "0";
+            this.barListItem1.Id = 24;
+            this.barListItem1.ImageOptions.ImageIndex = 3;
+            this.barListItem1.ItemAppearance.Normal.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.barListItem1.ItemAppearance.Normal.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.barListItem1.ItemAppearance.Normal.Options.UseFont = true;
+            this.barListItem1.ItemAppearance.Normal.Options.UseForeColor = true;
+            this.barListItem1.ItemAppearance.Normal.Options.UseImage = true;
+            this.barListItem1.MenuAppearance.HeaderItemAppearance.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Bold);
+            this.barListItem1.MenuAppearance.HeaderItemAppearance.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.barListItem1.MenuAppearance.HeaderItemAppearance.Options.UseFont = true;
+            this.barListItem1.MenuAppearance.HeaderItemAppearance.Options.UseForeColor = true;
+            this.barListItem1.MenuAppearance.MenuCaption.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.barListItem1.MenuAppearance.MenuCaption.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.barListItem1.MenuAppearance.MenuCaption.Options.UseFont = true;
+            this.barListItem1.MenuAppearance.MenuCaption.Options.UseForeColor = true;
+            this.barListItem1.MenuCaption = "错误日志";
+            this.barListItem1.Name = "barListItem1";
+            this.barListItem1.ShowMenuCaption = true;
+            this.barListItem1.ShowNumbers = true;
+            this.barListItem1.Strings.AddRange(new object[] {
+            "少时诵诗书所所所所所所所所所所所所所所所",
+            "222222222222222222222222222222222222222222222222222222222222222222222222222222222" +
+                "2222222222222222222"});
+            // 
             // barDockControlTop
             // 
             this.barDockControlTop.CausesValidation = false;
             this.barDockControlTop.Dock = System.Windows.Forms.DockStyle.Top;
             this.barDockControlTop.Location = new System.Drawing.Point(0, 0);
             this.barDockControlTop.Manager = this.barManager1;
-            this.barDockControlTop.Size = new System.Drawing.Size(1138, 56);
+            this.barDockControlTop.Size = new System.Drawing.Size(1138, 53);
             // 
             // barDockControlBottom
             // 
             this.barDockControlBottom.CausesValidation = false;
             this.barDockControlBottom.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.barDockControlBottom.Location = new System.Drawing.Point(0, 698);
+            this.barDockControlBottom.Location = new System.Drawing.Point(0, 701);
             this.barDockControlBottom.Manager = this.barManager1;
-            this.barDockControlBottom.Size = new System.Drawing.Size(1138, 26);
+            this.barDockControlBottom.Size = new System.Drawing.Size(1138, 23);
             // 
             // barDockControlLeft
             // 
             this.barDockControlLeft.CausesValidation = false;
             this.barDockControlLeft.Dock = System.Windows.Forms.DockStyle.Left;
-            this.barDockControlLeft.Location = new System.Drawing.Point(0, 56);
+            this.barDockControlLeft.Location = new System.Drawing.Point(0, 53);
             this.barDockControlLeft.Manager = this.barManager1;
-            this.barDockControlLeft.Size = new System.Drawing.Size(0, 642);
+            this.barDockControlLeft.Size = new System.Drawing.Size(0, 648);
             // 
             // barDockControlRight
             // 
             this.barDockControlRight.CausesValidation = false;
             this.barDockControlRight.Dock = System.Windows.Forms.DockStyle.Right;
-            this.barDockControlRight.Location = new System.Drawing.Point(1138, 56);
+            this.barDockControlRight.Location = new System.Drawing.Point(1138, 53);
             this.barDockControlRight.Manager = this.barManager1;
-            this.barDockControlRight.Size = new System.Drawing.Size(0, 642);
+            this.barDockControlRight.Size = new System.Drawing.Size(0, 648);
+            // 
+            // imageCollection1
+            // 
+            this.imageCollection1.ImageStream = ((DevExpress.Utils.ImageCollectionStreamer)(resources.GetObject("imageCollection1.ImageStream")));
+            this.imageCollection1.Images.SetKeyName(0, "pause_16x16.png");
+            this.imageCollection1.Images.SetKeyName(1, "play_16x16.png");
+            this.imageCollection1.Images.SetKeyName(2, "stop_16x16.png");
+            this.imageCollection1.Images.SetKeyName(3, "iconsetsymbols3_16x16.png");
+            this.imageCollection1.Images.SetKeyName(4, "learn16.png");
+            this.imageCollection1.Images.SetKeyName(5, "learn32.png");
+            this.imageCollection1.Images.SetKeyName(6, "5-121204193934-52.gif");
+            this.imageCollection1.Images.SetKeyName(7, "stop.png");
+            this.imageCollection1.Images.SetKeyName(8, "start.png");
+            this.imageCollection1.Images.SetKeyName(9, "login.png");
+            this.imageCollection1.Images.SetKeyName(10, "refresh.png");
             // 
             // layoutLogin
             // 
@@ -508,8 +579,10 @@
             this.colIsSelect});
             this.gridView1.GridControl = this.gridControl1;
             this.gridView1.Name = "gridView1";
+            this.gridView1.OptionsCustomization.AllowFilter = false;
             this.gridView1.OptionsCustomization.AllowGroup = false;
             this.gridView1.OptionsCustomization.AllowSort = false;
+            this.gridView1.OptionsView.ShowFilterPanelMode = DevExpress.XtraGrid.Views.Base.ShowFilterPanelMode.Never;
             this.gridView1.OptionsView.ShowGroupPanel = false;
             this.gridView1.CustomDrawCell += new DevExpress.XtraGrid.Views.Base.RowCellCustomDrawEventHandler(this.GridView1_CustomDrawCell);
             this.gridView1.CustomRowCellEditForEditing += new DevExpress.XtraGrid.Views.Grid.CustomRowCellEditEventHandler(this.GridView1_CustomRowCellEditForEditing);
@@ -592,17 +665,6 @@
             this.repositoryItemImageComboBox1.Name = "repositoryItemImageComboBox1";
             this.repositoryItemImageComboBox1.SmallImages = this.imageCollection1;
             // 
-            // imageCollection1
-            // 
-            this.imageCollection1.ImageStream = ((DevExpress.Utils.ImageCollectionStreamer)(resources.GetObject("imageCollection1.ImageStream")));
-            this.imageCollection1.Images.SetKeyName(0, "pause_16x16.png");
-            this.imageCollection1.Images.SetKeyName(1, "play_16x16.png");
-            this.imageCollection1.Images.SetKeyName(2, "stop_16x16.png");
-            this.imageCollection1.Images.SetKeyName(3, "iconsetsymbols3_16x16.png");
-            this.imageCollection1.Images.SetKeyName(4, "learn16.png");
-            this.imageCollection1.Images.SetKeyName(5, "learn32.png");
-            this.imageCollection1.Images.SetKeyName(6, "5-121204193934-52.gif");
-            // 
             // colIsSelect
             // 
             this.colIsSelect.Caption = " ";
@@ -638,10 +700,6 @@
             this.layoutControlGroup1.Size = new System.Drawing.Size(987, 534);
             this.layoutControlGroup1.TextVisible = false;
             // 
-            // dxError
-            // 
-            this.dxError.ContainerControl = this;
-            // 
             // layoutControlItem3
             // 
             this.layoutControlItem3.Control = this.gridControl1;
@@ -650,6 +708,10 @@
             this.layoutControlItem3.Size = new System.Drawing.Size(967, 514);
             this.layoutControlItem3.TextSize = new System.Drawing.Size(0, 0);
             this.layoutControlItem3.TextVisible = false;
+            // 
+            // dxError
+            // 
+            this.dxError.ContainerControl = this;
             // 
             // Form1
             // 
@@ -667,6 +729,7 @@
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.barManager1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.repositoryItemMarqueeProgressBar1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.imageCollection1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutLogin)).EndInit();
             this.layoutLogin.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.textEdit11.Properties)).EndInit();
@@ -687,12 +750,11 @@
             ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.gridView1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.repositoryItemImageComboBox1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.imageCollection1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.repositoryItemCheckEdit1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.repositoryItemImageEdit1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutControlGroup1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dxError)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutControlItem3)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dxError)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -752,6 +814,8 @@
         private DevExpress.XtraBars.BarStaticItem barWeekIntegral;
         private DevExpress.XtraBars.BarStaticItem barSummaryIntegral;
         private DevExpress.XtraLayout.LayoutControlItem layoutControlItem3;
+        private DevExpress.XtraBars.BarStaticItem barIntegralRank;
+        private DevExpress.XtraBars.BarListItem barListItem1;
     }
 }
 

@@ -91,6 +91,7 @@ namespace LearningFucker.Handler
         public LearningFucker.Models.Task Task { get; }
 
         public event Action<TaskForWork> OnCompleted;
+        public event Action<TaskForWork> OnStopped;
 
         private TaskStatus taskStatus;
         public TaskStatus TaskStatus { get=>taskStatus;
@@ -98,6 +99,8 @@ namespace LearningFucker.Handler
                 taskStatus = value;
                 if (taskStatus == TaskStatus.Completed)
                     OnCompleted?.Invoke(this);
+                if (taskStatus == TaskStatus.Stopped)
+                    OnStopped?.Invoke(this);
             }
             
         }

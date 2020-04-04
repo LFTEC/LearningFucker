@@ -21,8 +21,29 @@ namespace LearningFucker
             layoutLogin.Dock = DockStyle.Fill;
             layoutTask.Dock = DockStyle.Fill;
             Worker = new Worker();
-            Worker.TaskRefresed = new Action<Worker>(s => gridControl1.RefreshDataSource());
-            Worker.OnSaying = new Action<object, string>((sender, Text) => barStatusText.Caption = Text);
+
+
+            Worker.TaskRefresed += new Action<Worker>(s => {
+                if(InvokeRequired)
+                {
+                    this.Invoke(Worker.TaskRefresed, s);
+                    return;
+                }
+                gridControl1.RefreshDataSource();
+                this.barTodyIntegral.Caption = Worker.UserStatistics.TodayIntegral.ToString();
+                this.barWeekIntegral.Caption = Worker.UserStatistics.WeekIntegral.ToString();
+                this.barSummaryIntegral.Caption = Worker.UserStatistics.SumIntegral.ToString();
+                this.barIntegralRank.Caption = Worker.UserStatistics.IntegralRanking;
+            });
+            Worker.OnSaying = new Action<object, string>((sender, Text) =>
+            {
+                if (InvokeRequired)
+                {
+                    this.Invoke(Worker.OnSaying, sender, Text);
+                    return;
+                }
+                barStatusText.Caption = Text;
+            });
             Config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             ReadPassword();
             var image = imageCollection1.Images["learn32.png"];
@@ -31,6 +52,7 @@ namespace LearningFucker
 
         private const string KEY = "jcflRWUJqAs=";
         private const string IV = "hBoIpG2rhqE=";
+        private bool running = false;
 
 
         public Worker Worker { get; set; }
@@ -71,6 +93,7 @@ namespace LearningFucker
                     this.barTodyIntegral.Caption = Worker.UserStatistics.TodayIntegral.ToString();
                     this.barWeekIntegral.Caption = Worker.UserStatistics.WeekIntegral.ToString();
                     this.barSummaryIntegral.Caption = Worker.UserStatistics.SumIntegral.ToString();
+                    this.barIntegralRank.Caption = Worker.UserStatistics.IntegralRanking;
 
                     //var taskList = new List<int>();
                     //taskList.Add(14);
@@ -149,16 +172,49 @@ namespace LearningFucker
         {
             this.bindingSource1.DataSource = Worker.TaskList;
 
-            repositoryItemImageComboBox1.Items.Add("", LearningFucker.Handler.TaskStatus.Initial, 6);
+            repositoryItemImageComboBox1.Items.Add("", LearningFucker.Handler.TaskStatus.Initial, 8);
             repositoryItemImageComboBox1.Items.Add("", LearningFucker.Handler.TaskStatus.Completed, 3);
-            repositoryItemImageComboBox1.Items.Add("", LearningFucker.Handler.TaskStatus.Stopped, 6);
-            repositoryItemImageComboBox1.Items.Add("", LearningFucker.Handler.TaskStatus.Stopping, 6);
+            repositoryItemImageComboBox1.Items.Add("", LearningFucker.Handler.TaskStatus.Stopped, 2);
+            repositoryItemImageComboBox1.Items.Add("", LearningFucker.Handler.TaskStatus.Stopping, 2);
             repositoryItemImageComboBox1.Items.Add("", LearningFucker.Handler.TaskStatus.Working, 6);
 
             this.progressBar.Visibility = DevExpress.XtraBars.BarItemVisibility.Never;
+
+            Worker.WorkStarted += Worker_WorkStarted;
+            Worker.WorkStopped += Worker_WorkStopped;
         }
 
+        private void Worker_WorkStopped(object sender, EventArgs e)
+        {
+            if(this.InvokeRequired)
+            {
+                this.Invoke(new Action(() => Worker_WorkStopped(sender, e)));
+                return;
+            }
 
+            this.progressBar.Visibility = DevExpress.XtraBars.BarItemVisibility.Never;
+            barButtonItem3.Enabled = true;
+            barButtonItem4.Enabled = false;
+            running = false;
+            gridView1.RefreshData();
+            Worker.Refresh();
+        }
+
+        private void Worker_WorkStarted(object sender, EventArgs e)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(() => Worker_WorkStarted(sender, e)));
+                return;
+            }
+
+            this.progressBar.Visibility = DevExpress.XtraBars.BarItemVisibility.Always;
+            barButtonItem3.Enabled = false;
+            barButtonItem4.Enabled = true;
+            running = true;
+            gridView1.RefreshData();
+            Worker.Refresh();
+        }
 
         private void GridView1_CustomRowCellEditForEditing(object sender, CustomRowCellEditEventArgs e)
         {
@@ -166,14 +222,20 @@ namespace LearningFucker
             var grid = sender as GridView;
             var row = grid.GetRow(e.RowHandle) as LearningFucker.Models.Task;
 
-
-            if (row.LimitIntegral <= row.Integral || row.UncompeletedItemCount == 0)
+            if (running)
             {
                 e.RepositoryItem.ReadOnly = true;
             }
             else
             {
-                e.RepositoryItem.ReadOnly = false;
+                if (row.LimitIntegral <= row.Integral || row.UncompeletedItemCount == 0)
+                {
+                    e.RepositoryItem.ReadOnly = true;
+                }
+                else
+                {
+                    e.RepositoryItem.ReadOnly = false;
+                }
             }
         }
 
@@ -194,9 +256,8 @@ namespace LearningFucker
                 return;
             }
             else
-            {
+            {             
                 
-                this.progressBar.Visibility = DevExpress.XtraBars.BarItemVisibility.Always;
                 List<int> tasks = new List<int>();
                 foreach (var item in selectedTask)
                 {
@@ -220,6 +281,11 @@ namespace LearningFucker
         private void ProgressBar_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
         {
 
+        }
+
+        private void barButtonItem4_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
+        {
+            Worker.StopWork();
         }
     }
 

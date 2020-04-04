@@ -24,7 +24,7 @@ namespace LearningFucker.Handler
             return true;
         }
 
-        private async void Start()
+        private void Start()
         {            
             DoWork();
         }

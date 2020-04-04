@@ -27,7 +27,7 @@ namespace LearningFucker.Models
         /// <summary>
         /// 积分当前排名
         /// </summary>
-        public decimal IntegralRanking { get; set; }
+        public string IntegralRanking { get; set; }
 
         public decimal WeekIntegral { get; set; }
     }

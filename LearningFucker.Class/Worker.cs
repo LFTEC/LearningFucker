@@ -31,6 +31,9 @@ namespace LearningFucker
         public AppInfo AppInfo { get; private set; }
         public Fucker Fucker { get; private set; }
 
+        public event EventHandler WorkStarted;
+        public event EventHandler WorkStopped;
+
         public List<LearningFucker.Models.Task> TaskList { get; set; }
         public UserStatistics UserStatistics { get; private set; }
 
@@ -46,23 +49,11 @@ namespace LearningFucker
 
         public Action<object, string> OnSaying;
         public Action<object, string> OnReportingError;
+        public bool Parallel { get; private set; }
 
-        private async void Timer_Elapsed(object sender, ElapsedEventArgs e)
+        private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            UserStatistics = await Fucker.GetMyTaskInfo();
-            if (UserStatistics == null)
-            {
-                throw new Exception("获取用户任务完成信息时失败, 请重新打开程序重试!");
-            }
-
-            await RefreshTaskList();
-
-            //var user = await Fucker.GetUserInfo();
-            //if (user == null)
-            //    throw new Exception("用户已失效, 请重新登录;");
-
-            if (TaskRefresed != null)
-                TaskRefresed(this);
+            Refresh();
         }
 
         public async Task<bool> Login(string username, string password)
@@ -166,6 +157,8 @@ namespace LearningFucker
             if (tasks == null || tasks.Count == 0)
                 return;
 
+            this.Parallel = parallel;
+
             this.Say("开始进行学习任务...");
 
             Timer.Start();
@@ -173,6 +166,8 @@ namespace LearningFucker
             LaunchWorkList(tasks);
 
             WorkList[0].Start(Fucker);
+
+            WorkStarted?.Invoke(this, new EventArgs());
         }
 
         private void LaunchWorkList(List<int> tasks)
@@ -187,10 +182,12 @@ namespace LearningFucker
                         task = TaskList.FirstOrDefault(s => s.TaskType == item);
                         TaskForWork taskForWork = new TaskForWork(task, new StudyHandler());
                         taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
+                        taskForWork.OnStopped += TaskForWork_OnStopped;
                         WorkList.Add(taskForWork);
 
                         taskForWork = new TaskForWork(task, new ExamHandler());
                         taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
+                        taskForWork.OnStopped += TaskForWork_OnStopped;
                         WorkList.Add(taskForWork);
 
                         break;
@@ -198,16 +195,19 @@ namespace LearningFucker
                         task = TaskList.FirstOrDefault(s => s.TaskType == item);
                         taskForWork = new TaskForWork(task, new ElectiveHandler());
                         taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
+                        taskForWork.OnStopped += TaskForWork_OnStopped;
                         WorkList.Add(taskForWork);
 
                         taskForWork = new TaskForWork(task, new ExerciseHandler());
                         taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
+                        taskForWork.OnStopped += TaskForWork_OnStopped;
                         WorkList.Add(taskForWork);
                         break;
                     case 13:
                         task = TaskList.FirstOrDefault(s => s.TaskType == item);
                         taskForWork = new TaskForWork(task.LimitIntegral, task.Integral, task, new PKHandler());
                         taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
+                        taskForWork.OnStopped += TaskForWork_OnStopped;
                         WorkList.Add(taskForWork);
                         break;
 
@@ -215,17 +215,28 @@ namespace LearningFucker
                         task = TaskList.FirstOrDefault(s => s.TaskType == item);
                         taskForWork = new TaskForWork(task.LimitIntegral, task.Integral, task, new BreakthroughHandler());
                         taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
+                        taskForWork.OnStopped += TaskForWork_OnStopped;
                         WorkList.Add(taskForWork);
                         break;
                 }
             }
         }
 
+        private void TaskForWork_OnStopped(TaskForWork obj)
+        {
+            this.Say("所有任务已停止.");
+            this.WorkStopped?.Invoke(this, new EventArgs());
+
+        }
+
         private void WorkItemCompleted(TaskForWork workItem)
         {
             var index = WorkList.IndexOf(workItem);
             if (index == WorkList.Count - 1)
-                return;
+            {
+                this.Say("学习任务已全部结束");
+                this.WorkStopped?.Invoke(this, new EventArgs());
+            }
             else
             {
                 index++;
@@ -235,7 +246,18 @@ namespace LearningFucker
 
         public void StopWork()
         {
+            var list = WorkList.Where(s => s.TaskStatus == Handler.TaskStatus.Working);
+            if (list.Count() == 0) return;
 
+            if (timer.Enabled)
+                timer.Stop();
+
+            this.Say("所有进行中任务停止中...");
+            foreach (var item in list)
+            {
+                item.Stop();
+            }
+            
         }
 
 

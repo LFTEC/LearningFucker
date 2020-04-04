@@ -89,50 +89,58 @@ namespace LearningFucker.Models
 
         private async void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            await fucker.SaveStudyLog(this);
-            await fucker.GetStudyInfo(this);
-            AddStudyDuration(Fucker.POLLING_TIME / 1000);
-
-            if(this.Ware.StudyDuration >= this.Ware.Duration )
+            try
             {
-                Ware.Complete = true;
+                await fucker.SaveStudyLog(this);
+                await fucker.GetStudyInfo(this);
+                AddStudyDuration(Fucker.POLLING_TIME / 1000);
 
+                if (this.Ware.StudyDuration >= this.Ware.Duration)
+                {
+                    Ware.Complete = true;
+
+                    this.Stop();
+                }
+
+                if (this.Course.StudyDuration >= this.Course.TotalMinute)
+                {
+                    Course.Complete = true;
+                    this.Stop();
+                }
+
+                //if(this.TodayStudyTime * 60 >= this.Course.TotalMinute)
+                //{
+                //    this.Complete = true;
+                //    Course.Complete = true;
+                //    this.Stop();
+                //}
+
+                //if(this.Course.StudyDuration - this.TodayStudyTime * 60 >= 60)
+                //{
+                //    this.Complete = true;
+                //    Course.Complete = true;
+                //    this.Stop();
+                //}
+
+                //学习时长增加而积分不增加时, 停止学习
+                if (this.StudyDuration / 120.0m - (this.StudyIntegral - this.InitIntegral) >= 1.0m)
+                {
+                    Course.Complete = true;
+                    this.Stop();
+                }
+
+                if (this.StudyIntegral == this.Appendix.MaxStudyIntegral)
+                {
+
+                    Course.Complete = true;
+                    this.Stop();
+                }
+            }
+            catch(Exception ex)
+            {
+                fucker.Worker.ReportError(ex.Message);
                 this.Stop();
             }
-
-            if(this.Course.StudyDuration >= this.Course.TotalMinute)
-            {
-                Course.Complete = true;
-                this.Stop();
-            }
-
-            //if(this.TodayStudyTime * 60 >= this.Course.TotalMinute)
-            //{
-            //    this.Complete = true;
-            //    Course.Complete = true;
-            //    this.Stop();
-            //}
-
-            //if(this.Course.StudyDuration - this.TodayStudyTime * 60 >= 60)
-            //{
-            //    this.Complete = true;
-            //    Course.Complete = true;
-            //    this.Stop();
-            //}
-
-            //学习时长增加而积分不增加时, 停止学习
-            if(this.StudyDuration / 120.0m - (this.StudyIntegral - this.InitIntegral) >= 1.0m)
-            {
-                Course.Complete = true;
-                this.Stop();
-            }
-
-            if(this.StudyIntegral == this.Appendix.MaxStudyIntegral)
-            {
-                
-                Course.Complete = true;
-                this.Stop();
-            }            
 
         }
     }
