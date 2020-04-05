@@ -56,6 +56,10 @@ namespace LearningFucker
                 barListItem1.Caption = "错误: " + barListItem1.Strings.Count;
             });
             Config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            if(Config.GetSection("UserCredential") == null )
+            {
+                Config.Sections.Add("UserCredential", new UserSection());
+            }
             ReadPassword();
             var image = imageCollection1.Images["learn32.png"];
             this.Icon = Icon.FromHandle(((Bitmap)image).GetHicon());
@@ -131,22 +135,32 @@ namespace LearningFucker
             cs.FlushFinalBlock();
             var cryPassword = Convert.ToBase64String(ms.ToArray());
 
-            if(Config.AppSettings.Settings["UserId"] == null)
+            if(Config.AppSettings.Settings.AllKeys.Contains("UserId"))
             {
-                Config.AppSettings.Settings.Add("UserId", userId);
-            }
-            else
                 Config.AppSettings.Settings["UserId"].Value = userId;
-
-            if (Config.AppSettings.Settings["Password"] == null)
-            {
-                Config.AppSettings.Settings.Add("Password", cryPassword);
             }
             else
+                Config.AppSettings.Settings.Add("UserId", userId);
+
+
+            if (Config.AppSettings.Settings.AllKeys.Contains("Password"))
+            {
                 Config.AppSettings.Settings["Password"].Value = cryPassword;
+            }
+            else
+                Config.AppSettings.Settings.Add("Password", cryPassword);
+
+            var userSection = Config.GetSection("UserCredential") as UserSection;
+            if (userSection.Users.Contain(userId))
+                userSection.Users.GetUser(userId).Password = cryPassword;
+            else
+                userSection.Users.Add(userId, cryPassword);
 
             Config.Save(ConfigurationSaveMode.Modified);
             ConfigurationManager.RefreshSection("appSettings");
+            ConfigurationManager.RefreshSection("UserCredential");
+            
+            
         }
 
         private void ReadPassword()
@@ -177,6 +191,12 @@ namespace LearningFucker
                 cs.FlushFinalBlock();
                 textEdit2.Text = Encoding.UTF8.GetString(ms.ToArray());
             }
+
+            var userSection = Config.GetSection("UserCredential") as UserSection;
+            foreach (var item in userSection.Users.AllKeys)
+            {
+                textEdit11.Properties.Items.Add(item);
+            } 
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -309,6 +329,27 @@ namespace LearningFucker
         {
             if (e.KeyChar == '\r')
                 SimpleButton11_Click(sender, new EventArgs());
+        }
+
+        private void textEdit11_Properties_SelectedValueChanged(object sender, EventArgs e)
+        {
+            var userSection = Config.GetSection("UserCredential") as UserSection;
+            var User = userSection.Users.GetUser(textEdit11.SelectedItem.ToString());
+            if (User == null)
+                return;
+
+            SymmetricAlgorithm sa = DES.Create();
+            sa.Key = Convert.FromBase64String(KEY);
+            sa.IV = Convert.FromBase64String(IV);
+            var cryPassword = User.Password;
+
+            byte[] content = Convert.FromBase64String(cryPassword);
+            var ms = new MemoryStream();
+            var cs = new CryptoStream(ms, sa.CreateDecryptor(), CryptoStreamMode.Write);
+
+            cs.Write(content, 0, content.Length);
+            cs.FlushFinalBlock();
+            textEdit2.Text = Encoding.UTF8.GetString(ms.ToArray());
         }
     }
 

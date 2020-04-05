@@ -107,6 +107,8 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Settings.cs" />
+    <Compile Include="UserSection.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
@@ -133,9 +135,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LearningFucker.Class\LearningFucker.Class.csproj">
-      <Project>{4dd8b378-edee-4071-804f-7858d1a7bae5}</Project>
-      <Name>LearningFucker.Class</Name>
+    <ProjectReference Include="..\LearningFucker.Core\LearningFucker.Core.csproj">
+      <Project>{87572f50-b55f-4f8d-9c9d-157686cfebc4}</Project>
+      <Name>LearningFucker.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
