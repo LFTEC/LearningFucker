@@ -44,6 +44,17 @@ namespace LearningFucker
                 }
                 barStatusText.Caption = Text;
             });
+
+            Worker.OnReportingError = new Action<object, string>((sender, Text) =>
+            {
+                if(InvokeRequired)
+                {
+                    this.Invoke(Worker.OnReportingError, sender, Text);
+                    return;
+                }
+                barListItem1.Strings.Add(Text);
+                barListItem1.Caption = "错误: " + barListItem1.Strings.Count;
+            });
             Config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             ReadPassword();
             var image = imageCollection1.Images["learn32.png"];
@@ -286,6 +297,18 @@ namespace LearningFucker
         private void barButtonItem4_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
         {
             Worker.StopWork();
+        }
+
+        private void textEdit11_Properties_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == '\r')
+                textEdit2.Focus();
+        }
+
+        private void textEdit2_Properties_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == '\r')
+                SimpleButton11_Click(sender, new EventArgs());
         }
     }
 

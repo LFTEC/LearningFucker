@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LearningFucker.Models;
+using System.Diagnostics;
 
 namespace LearningFucker.Handler
 {
@@ -31,17 +32,9 @@ namespace LearningFucker.Handler
                 Random random = new Random();
                 int id = random.Next(0, propertyList.List[0].SubNodes.Count - 1);
 
-                if (propertyList.List[0].SubNodes[id] == null)      //可能会死循环
-                {
-                    DoWork();
-                    return;
-                }
-
                 var context = propertyList.List[0].SubNodes[id];
 
                 courseList = await Fucker.GetElectiveCourseList(context);
-
-
                 DoContext();
             }
             catch(Exception ex)
@@ -60,6 +53,9 @@ namespace LearningFucker.Handler
 
                 if (courseList.List[id].Detail != null && courseList.List[id].Detail.Complete)      //可能会死循环
                 {
+#if DEBUG
+                    StackTrace trace = new StackTrace(true);
+#endif
                     DoContext();
                     return;
                 }

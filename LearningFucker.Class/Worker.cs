@@ -47,8 +47,8 @@ namespace LearningFucker
 
         public Action<Worker> TaskRefresed;
 
-        public Action<object, string> OnSaying;
-        public Action<object, string> OnReportingError;
+        public Action<object, string> OnSaying { get; set; }
+        public Action<object, string> OnReportingError { get; set; }
         public bool Parallel { get; private set; }
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LearningFucker.Models;
+using System.Diagnostics;
 
 namespace LearningFucker.Handler
 {
@@ -32,6 +33,9 @@ namespace LearningFucker.Handler
 
                 if (courseList.List[id].Detail != null && courseList.List[id].Detail.Complete)      //可能会死循环
                 {
+#if DEBUG
+                    StackTrace trace = new StackTrace(true);
+#endif
                     DoWork();
                     return;
                 }

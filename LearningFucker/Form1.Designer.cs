@@ -237,7 +237,7 @@
             new DevExpress.XtraBars.LinkPersistInfo(this.barTodyIntegral, true),
             new DevExpress.XtraBars.LinkPersistInfo(this.barWeekIntegral, true),
             new DevExpress.XtraBars.LinkPersistInfo(this.barSummaryIntegral, true),
-            new DevExpress.XtraBars.LinkPersistInfo(this.barListItem1)});
+            new DevExpress.XtraBars.LinkPersistInfo(this.barListItem1, true)});
             this.bar3.OptionsBar.AllowQuickCustomization = false;
             this.bar3.OptionsBar.DrawDragBorder = false;
             this.bar3.OptionsBar.UseWholeRow = true;
@@ -318,7 +318,7 @@
             // 
             // barListItem1
             // 
-            this.barListItem1.Caption = "0";
+            this.barListItem1.Caption = "错误: 0";
             this.barListItem1.Id = 24;
             this.barListItem1.ImageOptions.ImageIndex = 3;
             this.barListItem1.ItemAppearance.Normal.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -326,6 +326,10 @@
             this.barListItem1.ItemAppearance.Normal.Options.UseFont = true;
             this.barListItem1.ItemAppearance.Normal.Options.UseForeColor = true;
             this.barListItem1.ItemAppearance.Normal.Options.UseImage = true;
+            this.barListItem1.MenuAppearance.AppearanceMenu.Normal.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.barListItem1.MenuAppearance.AppearanceMenu.Normal.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.barListItem1.MenuAppearance.AppearanceMenu.Normal.Options.UseFont = true;
+            this.barListItem1.MenuAppearance.AppearanceMenu.Normal.Options.UseForeColor = true;
             this.barListItem1.MenuAppearance.HeaderItemAppearance.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Bold);
             this.barListItem1.MenuAppearance.HeaderItemAppearance.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
             this.barListItem1.MenuAppearance.HeaderItemAppearance.Options.UseFont = true;
@@ -338,10 +342,6 @@
             this.barListItem1.Name = "barListItem1";
             this.barListItem1.ShowMenuCaption = true;
             this.barListItem1.ShowNumbers = true;
-            this.barListItem1.Strings.AddRange(new object[] {
-            "少时诵诗书所所所所所所所所所所所所所所所",
-            "222222222222222222222222222222222222222222222222222222222222222222222222222222222" +
-                "2222222222222222222"});
             // 
             // barDockControlTop
             // 
@@ -409,6 +409,7 @@
             this.textEdit11.EditValue = "myEmail@mail.com";
             this.textEdit11.Location = new System.Drawing.Point(271, 99);
             this.textEdit11.Name = "textEdit11";
+            this.textEdit11.Properties.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textEdit11_Properties_KeyPress);
             this.textEdit11.Size = new System.Drawing.Size(245, 20);
             this.textEdit11.StyleController = this.layoutLogin;
             this.textEdit11.TabIndex = 4;
@@ -419,6 +420,8 @@
             this.textEdit2.Location = new System.Drawing.Point(271, 123);
             this.textEdit2.Name = "textEdit2";
             this.textEdit2.Properties.PasswordChar = '*';
+            this.textEdit2.Properties.UseSystemPasswordChar = true;
+            this.textEdit2.Properties.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textEdit2_Properties_KeyPress);
             this.textEdit2.Size = new System.Drawing.Size(245, 20);
             this.textEdit2.StyleController = this.layoutLogin;
             this.textEdit2.TabIndex = 5;
