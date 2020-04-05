@@ -260,7 +260,6 @@
             this.progressBar.EditWidth = 30;
             this.progressBar.Id = 13;
             this.progressBar.Name = "progressBar";
-            this.progressBar.ItemClick += new DevExpress.XtraBars.ItemClickEventHandler(this.ProgressBar_ItemClick);
             // 
             // repositoryItemMarqueeProgressBar1
             // 
@@ -587,7 +586,6 @@
             this.gridView1.OptionsCustomization.AllowSort = false;
             this.gridView1.OptionsView.ShowFilterPanelMode = DevExpress.XtraGrid.Views.Base.ShowFilterPanelMode.Never;
             this.gridView1.OptionsView.ShowGroupPanel = false;
-            this.gridView1.CustomDrawCell += new DevExpress.XtraGrid.Views.Base.RowCellCustomDrawEventHandler(this.GridView1_CustomDrawCell);
             this.gridView1.CustomRowCellEditForEditing += new DevExpress.XtraGrid.Views.Grid.CustomRowCellEditEventHandler(this.GridView1_CustomRowCellEditForEditing);
             // 
             // colTaskType
