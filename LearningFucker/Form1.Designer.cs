@@ -54,12 +54,11 @@
             this.barDockControlRight = new DevExpress.XtraBars.BarDockControl();
             this.imageCollection1 = new DevExpress.Utils.ImageCollection(this.components);
             this.layoutLogin = new DevExpress.XtraLayout.LayoutControl();
-            this.textEdit11 = new DevExpress.XtraEditors.TextEdit();
             this.textEdit2 = new DevExpress.XtraEditors.TextEdit();
             this.simpleButton11 = new DevExpress.XtraEditors.SimpleButton();
             this.checkEdit1 = new DevExpress.XtraEditors.CheckEdit();
+            this.textEdit11 = new DevExpress.XtraEditors.ComboBoxEdit();
             this.Root = new DevExpress.XtraLayout.LayoutControlGroup();
-            this.layoutControlItem1 = new DevExpress.XtraLayout.LayoutControlItem();
             this.layoutControlItem2 = new DevExpress.XtraLayout.LayoutControlItem();
             this.layoutControlItem4 = new DevExpress.XtraLayout.LayoutControlItem();
             this.emptySpaceItem3 = new DevExpress.XtraLayout.EmptySpaceItem();
@@ -67,6 +66,7 @@
             this.emptySpaceItem5 = new DevExpress.XtraLayout.EmptySpaceItem();
             this.emptySpaceItem2 = new DevExpress.XtraLayout.EmptySpaceItem();
             this.layoutControlItem5 = new DevExpress.XtraLayout.LayoutControlItem();
+            this.layoutControlItem1 = new DevExpress.XtraLayout.LayoutControlItem();
             this.layoutTask = new DevExpress.XtraLayout.LayoutControl();
             this.gridControl1 = new DevExpress.XtraGrid.GridControl();
             this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
@@ -89,11 +89,10 @@
             ((System.ComponentModel.ISupportInitialize)(this.imageCollection1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutLogin)).BeginInit();
             this.layoutLogin.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.textEdit11.Properties)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.textEdit2.Properties)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.checkEdit1.Properties)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.textEdit11.Properties)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.Root)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.layoutControlItem1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutControlItem2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutControlItem4)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.emptySpaceItem3)).BeginInit();
@@ -101,6 +100,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.emptySpaceItem5)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.emptySpaceItem2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutControlItem5)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.layoutControlItem1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutTask)).BeginInit();
             this.layoutTask.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gridControl1)).BeginInit();
@@ -260,7 +260,6 @@
             this.progressBar.EditWidth = 30;
             this.progressBar.Id = 13;
             this.progressBar.Name = "progressBar";
-            this.progressBar.ItemClick += new DevExpress.XtraBars.ItemClickEventHandler(this.ProgressBar_ItemClick);
             // 
             // repositoryItemMarqueeProgressBar1
             // 
@@ -392,10 +391,10 @@
             // 
             // layoutLogin
             // 
-            this.layoutLogin.Controls.Add(this.textEdit11);
             this.layoutLogin.Controls.Add(this.textEdit2);
             this.layoutLogin.Controls.Add(this.simpleButton11);
             this.layoutLogin.Controls.Add(this.checkEdit1);
+            this.layoutLogin.Controls.Add(this.textEdit11);
             this.layoutLogin.Location = new System.Drawing.Point(12, 434);
             this.layoutLogin.Name = "layoutLogin";
             this.layoutLogin.OptionsCustomizationForm.DesignTimeCustomizationFormPositionAndSize = new System.Drawing.Rectangle(940, 303, 650, 400);
@@ -403,16 +402,6 @@
             this.layoutLogin.Size = new System.Drawing.Size(786, 258);
             this.layoutLogin.TabIndex = 4;
             this.layoutLogin.Text = "layoutControl1";
-            // 
-            // textEdit11
-            // 
-            this.textEdit11.EditValue = "myEmail@mail.com";
-            this.textEdit11.Location = new System.Drawing.Point(271, 99);
-            this.textEdit11.Name = "textEdit11";
-            this.textEdit11.Properties.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textEdit11_Properties_KeyPress);
-            this.textEdit11.Size = new System.Drawing.Size(245, 20);
-            this.textEdit11.StyleController = this.layoutLogin;
-            this.textEdit11.TabIndex = 4;
             // 
             // textEdit2
             // 
@@ -447,33 +436,34 @@
             this.checkEdit1.StyleController = this.layoutLogin;
             this.checkEdit1.TabIndex = 8;
             // 
+            // textEdit11
+            // 
+            this.textEdit11.Location = new System.Drawing.Point(271, 99);
+            this.textEdit11.MenuManager = this.barManager1;
+            this.textEdit11.Name = "textEdit11";
+            this.textEdit11.Properties.Buttons.AddRange(new DevExpress.XtraEditors.Controls.EditorButton[] {
+            new DevExpress.XtraEditors.Controls.EditorButton(DevExpress.XtraEditors.Controls.ButtonPredefines.Combo)});
+            this.textEdit11.Properties.SelectedValueChanged += new System.EventHandler(this.textEdit11_Properties_SelectedValueChanged);
+            this.textEdit11.Size = new System.Drawing.Size(245, 20);
+            this.textEdit11.StyleController = this.layoutLogin;
+            this.textEdit11.TabIndex = 9;
+            // 
             // Root
             // 
             this.Root.EnableIndentsWithoutBorders = DevExpress.Utils.DefaultBoolean.True;
             this.Root.GroupBordersVisible = false;
             this.Root.Items.AddRange(new DevExpress.XtraLayout.BaseLayoutItem[] {
-            this.layoutControlItem1,
             this.layoutControlItem2,
             this.layoutControlItem4,
             this.emptySpaceItem3,
             this.emptySpaceItem4,
             this.emptySpaceItem5,
             this.emptySpaceItem2,
-            this.layoutControlItem5});
+            this.layoutControlItem5,
+            this.layoutControlItem1});
             this.Root.Name = "Root";
             this.Root.Size = new System.Drawing.Size(786, 258);
             this.Root.TextVisible = false;
-            // 
-            // layoutControlItem1
-            // 
-            this.layoutControlItem1.Control = this.textEdit11;
-            this.layoutControlItem1.CustomizationFormText = "layoutControlItem1";
-            this.layoutControlItem1.Location = new System.Drawing.Point(259, 87);
-            this.layoutControlItem1.Name = "layoutControlItem1";
-            this.layoutControlItem1.Size = new System.Drawing.Size(249, 24);
-            this.layoutControlItem1.TextLocation = DevExpress.Utils.Locations.Left;
-            this.layoutControlItem1.TextSize = new System.Drawing.Size(0, 0);
-            this.layoutControlItem1.TextVisible = false;
             // 
             // layoutControlItem2
             // 
@@ -538,6 +528,15 @@
             this.layoutControlItem5.TextSize = new System.Drawing.Size(0, 0);
             this.layoutControlItem5.TextVisible = false;
             // 
+            // layoutControlItem1
+            // 
+            this.layoutControlItem1.Control = this.textEdit11;
+            this.layoutControlItem1.Location = new System.Drawing.Point(259, 87);
+            this.layoutControlItem1.Name = "layoutControlItem1";
+            this.layoutControlItem1.Size = new System.Drawing.Size(249, 24);
+            this.layoutControlItem1.TextSize = new System.Drawing.Size(0, 0);
+            this.layoutControlItem1.TextVisible = false;
+            // 
             // layoutTask
             // 
             this.layoutTask.Controls.Add(this.gridControl1);
@@ -587,7 +586,6 @@
             this.gridView1.OptionsCustomization.AllowSort = false;
             this.gridView1.OptionsView.ShowFilterPanelMode = DevExpress.XtraGrid.Views.Base.ShowFilterPanelMode.Never;
             this.gridView1.OptionsView.ShowGroupPanel = false;
-            this.gridView1.CustomDrawCell += new DevExpress.XtraGrid.Views.Base.RowCellCustomDrawEventHandler(this.GridView1_CustomDrawCell);
             this.gridView1.CustomRowCellEditForEditing += new DevExpress.XtraGrid.Views.Grid.CustomRowCellEditEventHandler(this.GridView1_CustomRowCellEditForEditing);
             // 
             // colTaskType
@@ -735,11 +733,10 @@
             ((System.ComponentModel.ISupportInitialize)(this.imageCollection1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutLogin)).EndInit();
             this.layoutLogin.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.textEdit11.Properties)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.textEdit2.Properties)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.checkEdit1.Properties)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.textEdit11.Properties)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.Root)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.layoutControlItem1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutControlItem2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutControlItem4)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.emptySpaceItem3)).EndInit();
@@ -747,6 +744,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.emptySpaceItem5)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.emptySpaceItem2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutControlItem5)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.layoutControlItem1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.layoutTask)).EndInit();
             this.layoutTask.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.gridControl1)).EndInit();
@@ -774,11 +772,9 @@
         private DevExpress.XtraBars.BarDockControl barDockControlLeft;
         private DevExpress.XtraBars.BarDockControl barDockControlRight;
         private DevExpress.XtraLayout.LayoutControl layoutLogin;
-        private DevExpress.XtraEditors.TextEdit textEdit11;
         private DevExpress.XtraEditors.TextEdit textEdit2;
         private DevExpress.XtraEditors.SimpleButton simpleButton11;
         private DevExpress.XtraLayout.LayoutControlGroup Root;
-        private DevExpress.XtraLayout.LayoutControlItem layoutControlItem1;
         private DevExpress.XtraLayout.LayoutControlItem layoutControlItem2;
         private DevExpress.XtraLayout.EmptySpaceItem emptySpaceItem3;
         private DevExpress.XtraLayout.EmptySpaceItem emptySpaceItem4;
@@ -819,6 +815,8 @@
         private DevExpress.XtraLayout.LayoutControlItem layoutControlItem3;
         private DevExpress.XtraBars.BarStaticItem barIntegralRank;
         private DevExpress.XtraBars.BarListItem barListItem1;
+        private DevExpress.XtraEditors.ComboBoxEdit textEdit11;
+        private DevExpress.XtraLayout.LayoutControlItem layoutControlItem1;
     }
 }
 
