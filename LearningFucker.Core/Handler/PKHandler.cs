@@ -31,24 +31,32 @@ namespace LearningFucker.Handler
 
         public async override void DoWork()
         {
-            if (this.TaskStatus == TaskStatus.Stopping)
+            try
             {
-                TaskStatus = TaskStatus.Stopped;
-                TaskForWork.TaskStatus = TaskStatus.Stopped;
-                return;
-            }
+                if (this.TaskStatus == TaskStatus.Stopping)
+                {
+                    TaskStatus = TaskStatus.Stopped;
+                    TaskForWork.TaskStatus = TaskStatus.Stopped;
+                    return;
+                }
 
-            Arena = await Fucker.GetArena();
-            if (Arena == null) throw new Exception("error");
+                Arena = await Fucker.GetArena();
+                if (Arena == null) throw new Exception("error");
 
-            if (await Fucker.JoinArena(Arena) && Arena.GroupId != "")
-            {
-                await GetArenaBothSide();
-                StartRound(0);
+                if (await Fucker.JoinArena(Arena) && Arena.GroupId != "")
+                {
+                    await GetArenaBothSide();
+                    StartRound(0);
+                }
+                else
+                {
+                    DoWork();
+                }
             }
-            else
+            catch(Exception ex)
             {
-                DoWork();
+                Fucker.Worker.ReportError(ex.Message);
+                Stop();
             }
         }
 
@@ -67,77 +75,92 @@ namespace LearningFucker.Handler
 
         private async void StartRound(int roundIndex)
         {
-            var round = await Fucker.Fight(Arena);
-            if(round == null)
+            try
             {
-                throw new Exception("error");              
-
-            }
-
-            if (round.CurrentIndex == roundIndex && round.Status == "Start")
-            {
-                if (Arena.Rounds == null)
-                    Arena.Rounds = new List<Round>();
-
-                Arena.Rounds.Add(round);
-
-                Timer timer = new Timer();
-                timer.Interval = new Random().Next(5000, 9000);
-                timer.AutoReset = false;
-                timer.Elapsed += new ElapsedEventHandler((s, e) => OnReply(s, e, roundIndex));
-                timer.Start();
-            }
-            else if(roundIndex == Arena.TmNumber)
-            {
-                if (round.CurrentIndex == 0)
+                var round = await Fucker.Fight(Arena);
+                if (round == null)
                 {
+                    throw new Exception("error");
 
-                    await Fucker.EndFight();
-                    if (await Fucker.GetPKResult(Arena))
+                }
+
+                if (round.CurrentIndex == roundIndex && round.Status == "Start")
+                {
+                    if (Arena.Rounds == null)
+                        Arena.Rounds = new List<Round>();
+
+                    Arena.Rounds.Add(round);
+
+                    Timer timer = new Timer();
+                    timer.Interval = new Random().Next(5000, 9000);
+                    timer.AutoReset = false;
+                    timer.Elapsed += new ElapsedEventHandler((s, e) => OnReply(s, e, roundIndex));
+                    timer.Start();
+                }
+                else if (roundIndex == Arena.TmNumber)
+                {
+                    if (round.CurrentIndex == 0)
                     {
-                        var gladiator = Arena.Results.FindIndex(s => s.Gladiator.UserName == Fucker.Worker.User.UserName);
-                        if (gladiator < 0) throw new Exception("error");
 
-                        TaskForWork.Integral += Arena.Results[gladiator].PKScroe;
-                        if (TaskForWork.LimitIntegral == TaskForWork.Integral)
-                            Complete();
-                        else
-                            DoWork();
+                        await Fucker.EndFight();
+                        if (await Fucker.GetPKResult(Arena))
+                        {
+                            var gladiator = Arena.Results.FindIndex(s => s.Gladiator.UserName == Fucker.Worker.User.UserName);
+                            if (gladiator < 0) throw new Exception("error");
+
+                            TaskForWork.Integral += Arena.Results[gladiator].PKScroe;
+                            if (TaskForWork.LimitIntegral == TaskForWork.Integral)
+                                Complete();
+                            else
+                                DoWork();
+                        }
                     }
+                    else
+                        StartRound(roundIndex);
                 }
                 else
+                {
                     StartRound(roundIndex);
+                }
             }
-            else
+            catch(Exception ex)
             {
-                StartRound(roundIndex);
+                Fucker.Worker.ReportError(ex.Message);
+                Stop();
             }
-           
 
             
         }
 
         private async void OnReply(object sender, ElapsedEventArgs args, int roundIndex)
         {
-            var round = Arena.Rounds[roundIndex];
-            var myself = Arena.BothSides.FindIndex(s => s.Username == Fucker.Worker.User.UserName);
-            var rival = myself ^ 1;
-
-            var myRight = round.AnswerResult[myself].Where(s => s == 1).Count();
-            var rivalRight = round.AnswerResult[rival].Where(s => s == 1).Count();
-
-            string answer;
-            if (myRight >= rivalRight + 2)
+            try
             {
-                answer = round.Question.Answers == "A" ? "B" : "A";
+                var round = Arena.Rounds[roundIndex];
+                var myself = Arena.BothSides.FindIndex(s => s.Username == Fucker.Worker.User.UserName);
+                var rival = myself ^ 1;
+
+                var myRight = round.AnswerResult[myself].Where(s => s == 1).Count();
+                var rivalRight = round.AnswerResult[rival].Where(s => s == 1).Count();
+
+                string answer;
+                if (myRight >= rivalRight + 2)
+                {
+                    answer = round.Question.Answers == "A" ? "B" : "A";
+                }
+                else
+                    answer = round.Question.Answers;
+
+                if (await Fucker.SubmitQuestion(Arena, round, answer.Replace(";", ",")))
+                {
+                    StartRound(++roundIndex);
+
+                }
             }
-            else
-                answer = round.Question.Answers;
-                
-            if (await Fucker.SubmitQuestion(Arena, round, answer.Replace(";", ",")))
+            catch(Exception ex)
             {
-                StartRound(++roundIndex);
-                
+                Fucker.Worker.ReportError(ex.Message);
+                Stop();
             }
         }
 

@@ -19,6 +19,12 @@ namespace LearningFucker.Handler
                 return false;
             }
 
+            if(TaskForWork.LimitIntegral <= TaskForWork.Integral)
+            {
+                Complete();
+                return true;
+            }
+
             Start();
             return true;
 
@@ -35,11 +41,13 @@ namespace LearningFucker.Handler
             {
                 Fucker.Worker.ReportError(ex.Message);
                 Fucker.Worker.Say("闯关答题启动失败!");
+                Stop();
             }
             catch (Exception ex)
             {
                 Fucker.Worker.ReportError(ex.Message);
                 Fucker.Worker.Say("闯关答题启动失败!");
+                Stop();
             }
         }
 
@@ -80,24 +88,14 @@ namespace LearningFucker.Handler
             {
                 Fucker.Worker.ReportError(ex.Message);
                 Fucker.Worker.Say("闯关答题答题失败!");
+                Stop();
             }
             catch (Exception ex)
             {
                 Fucker.Worker.ReportError(ex.Message);
                 Fucker.Worker.Say("闯关答题答题失败!");
+                Stop();
             }
-        }
-
-        public override bool Stop()
-        {
-            if (base.Stop())
-            {
-                TaskStatus = TaskStatus.Stopped;
-                return true;
-            }
-            else
-                return false;
-            
         }
 
     }

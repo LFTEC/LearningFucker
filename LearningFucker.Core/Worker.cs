@@ -218,6 +218,13 @@ namespace LearningFucker
                         taskForWork.OnStopped += TaskForWork_OnStopped;
                         WorkList.Add(taskForWork);
                         break;
+                    case 7:
+                        task = TaskList.FirstOrDefault(s => s.TaskType == item);
+                        taskForWork = new TaskForWork(task.LimitIntegral, task.Integral, task, new WeeklyPracticeHandler());
+                        taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
+                        taskForWork.OnStopped += TaskForWork_OnStopped;
+                        WorkList.Add(taskForWork);
+                        break;
                 }
             }
         }

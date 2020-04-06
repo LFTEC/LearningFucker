@@ -654,6 +654,50 @@ namespace LearningFucker
             return true;
         }
 
+        public async Task<PracticeQuestionList> StartWeeklyPractice()
+        {
+            Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+            valuePairs.Add("linkId", "");
+            var practiceQuestionList = await Post<PracticeQuestionList>("Api/WeeklyPractice/GetQuestion", GetContent(valuePairs));
+            return practiceQuestionList;
+        }
+
+        public async Task<bool> HandIn(PracticeQuestionList practice, List<ExerciseAnswer> answers, int answerTime)
+        {
+            Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+            valuePairs.Add("answerstring", JsonConvert.SerializeObject(answers));
+            valuePairs.Add("second", answerTime.ToString());
+            var result = await Post<PracticeResult>("Api/WeeklyPractice/SubmitTest", GetContent(valuePairs));
+
+            practice.Result = result;
+            return true;
+        }
+
+        public async Task<bool> GetResult(PracticeResult result)
+        {
+            Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+            valuePairs.Add("resultid", result.ResultId);
+            var tmpResult = await Post<dynamic>("Api/WeeklyPractice/GetResult", GetContent(valuePairs));
+
+            result.Status = tmpResult.result.Status;
+            result.Integral = tmpResult.Integral;
+
+            PracticeResult tmpResult2 = JsonConvert.DeserializeObject<PracticeResult>(JsonConvert.SerializeObject(tmpResult.result.Result));
+
+            result.Year = tmpResult2.Year;
+            result.Month = tmpResult2.Month;
+            result.Week = tmpResult2.Week;
+            result.TmSource = tmpResult2.TmSource;
+            result.IsAllRight = tmpResult2.IsAllRight;
+            result.TimeBegin = tmpResult2.TimeBegin;
+            result.TimeEnd = tmpResult2.TimeEnd;
+            result.TotalNum = tmpResult2.TotalNum;
+            result.CountRight = tmpResult2.CountRight;
+            result.Gather = tmpResult2.Gather;
+
+            return true;
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -716,7 +760,7 @@ namespace LearningFucker
                 else
                 {
                     
-                    throw new TransportException(string.Format("GET Error:{0}. Http Code:{1}, Response: {2}", requestUrl, response.StatusCode.ToString(), result), ex);
+                    throw new TransportException(string.Format("GET Error:{0}. Http Code:{1}, Response: {2}", requestUrl, response == null ? "null": response.StatusCode.ToString(), result), ex);
                 }
             }
         }
@@ -745,7 +789,9 @@ namespace LearningFucker
                     return null;
                 }
 
-                T data = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(obj.data));
+                JsonSerializerSettings setting = new JsonSerializerSettings();
+                setting.NullValueHandling = NullValueHandling.Ignore;
+                T data = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(obj.data), setting);
                 return data;
             }
             catch(Exception ex)
@@ -756,7 +802,7 @@ namespace LearningFucker
                 }
                 else
                 {
-                    throw new TransportException(string.Format("POST Error:{0}|{1}. Http Code: {2}, Response: {3}", requestUrl, JsonConvert.SerializeObject(content), response.StatusCode.ToString(), result), ex);
+                    throw new TransportException(string.Format("POST Error:{0}|{1}. Http Code: {2}, Response: {3}", requestUrl, JsonConvert.SerializeObject(content), response == null? "null": response.StatusCode.ToString(), result), ex);
                 }
             }
         }
