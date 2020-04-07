@@ -35,6 +35,7 @@ namespace LearningFucker.Handler
                 var context = propertyList.List[0].SubNodes[id];
 
                 courseList = await Fucker.GetElectiveCourseList(context);
+
                 DoContext();
             }
             catch(Exception ex)
@@ -49,13 +50,11 @@ namespace LearningFucker.Handler
             try
             {
                 Random random = new Random();
-                int id = random.Next(0, courseList.List.Count - 1);
+                int id = random.Next(0, courseList.List.Count - 1);                
 
                 if (courseList.List[id].Detail != null && courseList.List[id].Detail.Complete)      //可能会死循环
                 {
-#if DEBUG
-                    StackTrace trace = new StackTrace(true);
-#endif
+                    System.Threading.Thread.Sleep(100);
                     DoContext();
                     return;
                 }
