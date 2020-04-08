@@ -143,6 +143,7 @@ namespace LearningFucker.Handler
             catch(Exception ex)
             {
                 Fucker.Worker.ReportError(ex.Message);
+                Stop();
                 return 0;
             }
         }
@@ -166,6 +167,7 @@ namespace LearningFucker.Handler
             catch(Exception ex)
             {
                 Fucker.Worker.ReportError(ex.Message);
+                Stop();
             }
         }
 

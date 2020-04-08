@@ -33,9 +33,7 @@ namespace LearningFucker.Handler
 
                 if (courseList.List[id].Detail != null && courseList.List[id].Detail.Complete)      //可能会死循环
                 {
-#if DEBUG
-                    StackTrace trace = new StackTrace(true);
-#endif
+                    System.Threading.Thread.Sleep(100);
                     DoWork();
                     return;
                 }

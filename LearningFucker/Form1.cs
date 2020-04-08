@@ -252,7 +252,7 @@ namespace LearningFucker
             if (e.Column.FieldName != "IsSelect") return;
             var grid = sender as GridView;
             var row = grid.GetRow(e.RowHandle) as LearningFucker.Models.Task;
-
+#if !DEBUG
             if (running)
             {
                 e.RepositoryItem.ReadOnly = true;
@@ -268,6 +268,7 @@ namespace LearningFucker
                     e.RepositoryItem.ReadOnly = false;
                 }
             }
+#endif
         }
 
         private void BarButtonItem2_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
