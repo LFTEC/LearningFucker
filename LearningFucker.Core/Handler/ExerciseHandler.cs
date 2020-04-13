@@ -49,6 +49,12 @@ namespace LearningFucker.Handler
         {
             try
             {
+                await Fucker.GetExerciseAllowIntegral(course);
+                if(course.AllowExerciseIntegral <= 0)
+                {
+                    return 0;
+                }
+
                 List<ExerciseAnswer> answers = new List<ExerciseAnswer>();
 
                 if (!await Fucker.StartExercise(course))

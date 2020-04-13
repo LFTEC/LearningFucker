@@ -156,8 +156,12 @@ namespace LearningFucker
             valuePairs.Add("ProjType", course.ProjType);
             valuePairs.Add("ProjID", course.ProjID);
             valuePairs.Add("Proj2ID", course.Proj2ID);
-            var detail = await Get<CourseDetail>("Api/Courseware/Study/GetCoursewares", valuePairs);
-            course.Detail = detail;
+            var detail = await Get<dynamic>("Api/Courseware/Study/GetCoursewares", valuePairs);
+            course.Detail = JsonConvert.DeserializeObject<CourseDetail>(JsonConvert.SerializeObject(detail));
+            for (int i = 0; i < course.Detail.WareList.Count; i++)
+            {
+                course.Detail.WareList[i].AllowIntegral = detail.WareList[0].ProjInfo.AllowIntegral;
+            }
         }
 
         public async System.Threading.Tasks.Task GetCourseDetail(ElectiveCourse course)
@@ -167,8 +171,12 @@ namespace LearningFucker
             valuePairs.Add("ProjType", course.ProjType);
             valuePairs.Add("ProjID", course.ID);
             valuePairs.Add("Proj2ID", course.Proj2ID);
-            var detail = await Get<CourseDetail>("Api/Courseware/Study/GetCoursewares", valuePairs);
-            course.Detail = detail;
+            var detail = await Get<dynamic>("Api/Courseware/Study/GetCoursewares", valuePairs);
+            course.Detail = JsonConvert.DeserializeObject<CourseDetail>(JsonConvert.SerializeObject(detail));
+            for (int i = 0; i < course.Detail.WareList.Count; i++)
+            {
+                course.Detail.WareList[i].AllowIntegral = detail.WareList[0].ProjInfo.AllowIntegral;
+            }
         }
 
         public async System.Threading.Tasks.Task GetCourseAppendix(Course course)
@@ -435,6 +443,17 @@ namespace LearningFucker
             }
             return electiveCourseList;
         }
+
+        public async Task<bool> GetExerciseAllowIntegral(ElectiveCourse course)
+        {
+            Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+            valuePairs.Add("TaskType", "15");
+            valuePairs.Add("ProjID", course.ID);
+            var tmpCourse = await Get<ElectiveCourse>("Api/Common/Task/GetEverydayIntegral", valuePairs);
+            course.AllowExerciseIntegral = tmpCourse.AllowExerciseIntegral;
+            return true;
+        }
+
 
         public async Task<BreakthroughList> GetBreakthroughList()
         {

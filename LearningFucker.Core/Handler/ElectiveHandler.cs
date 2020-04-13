@@ -80,6 +80,22 @@ namespace LearningFucker.Handler
         {
             try
             {
+                if(item.AllowIntegral <= 0)
+                {
+                    if (this.TaskStatus == TaskStatus.Working)
+                    {
+                        var index = course.Detail.WareList.IndexOf(item);
+                        if (index == course.Detail.WareList.Count - 1)
+                            DoContext();
+                        else
+                        {
+                            index++;
+                            DoStudy(course, course.Detail.WareList[index]);
+                        }
+                    }
+                    return;
+                }
+
                 var study = await Fucker.StartStudy(course, item);
                 if (Studies == null)
                     studies = new List<Study>();

@@ -124,6 +124,12 @@ namespace LearningFucker.Models
         /// 练习卷清单
         /// </summary>
         public List<Exercise> Exercises { get; set; }
+
+        /// <summary>
+        /// 允许练习可得积分
+        /// </summary>
+        [JsonProperty("AllowIntegral")]
+        public decimal AllowExerciseIntegral { get; set; }
     }
 
     public class CourseDetail
@@ -160,6 +166,7 @@ namespace LearningFucker.Models
         /// 本次学习时长
         /// </summary>
         public int StudyDuration { get; set; }
+
 
         public bool Complete { get; set; }
 
@@ -200,6 +207,11 @@ namespace LearningFucker.Models
         /// 学习时长
         /// </summary>
         public int StudyDuration { get; set; }
+
+        /// <summary>
+        /// 本次允许学习积分
+        /// </summary>
+        public decimal AllowIntegral { get; set; }
 
         public bool Complete { get; set; }
 

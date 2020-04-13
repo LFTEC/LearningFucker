@@ -122,6 +122,13 @@ namespace LearningFucker.Models
                 //    this.Stop();
                 //}
 
+                //如果已学习积分达到课程允许学到的积分, 则完成学习
+                if(this.StudyIntegral - this.InitIntegral >= this.Ware.AllowIntegral)
+                {
+                    Ware.Complete = true;
+                    this.Stop();
+                }
+
                 //学习时长增加而积分不增加时, 停止学习
                 if (this.StudyDuration / 120.0m - (this.StudyIntegral - this.InitIntegral) >= 1.0m)
                 {
