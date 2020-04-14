@@ -741,20 +741,21 @@ namespace LearningFucker
         {
             HttpResponseMessage response = null;
             string result = "";
+            string url = "";
             try
-            {
+            {                
                 Random random = new Random();
                 var ran = random.NextDouble().ToString();
 
-                requestUrl = string.Format("{0}?random={1}", requestUrl, ran);
+                url = string.Format("{0}?random={1}", requestUrl, ran);
                 if (pairs != null && pairs.Count() > 0)
                 {
                     var querystring = pairs.Aggregate("", (current, item) => string.Format("{0}{1}={2}&", current, item.Key, HttpUtility.UrlEncode(item.Value, Encoding.UTF8)));
                     querystring = querystring.Substring(0, querystring.LastIndexOf("&"));
-                    requestUrl = requestUrl + "&" + querystring;
+                    url = url + "&" + querystring;
                 }
 
-                response = await httpClient.GetAsync(requestUrl, HttpCompletionOption.ResponseContentRead);
+                response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseContentRead);
                 if (response.StatusCode != System.Net.HttpStatusCode.OK)
                 {
                     throw new Exception("网络访问异常");
@@ -779,7 +780,7 @@ namespace LearningFucker
                 else
                 {
                     
-                    throw new TransportException(string.Format("GET Error:{0}. Http Code:{1}, Response: {2}", requestUrl, response == null ? "null": response.StatusCode.ToString(), result), ex);
+                    throw new TransportException(string.Format("GET Error:{0}. Http Code:{1}, Response: {2}", url, response == null ? "null": response.StatusCode.ToString(), result), ex);
                 }
             }
         }
