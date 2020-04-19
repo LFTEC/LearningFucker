@@ -41,7 +41,6 @@ namespace LearningFucker.Handler
                 }
 
                 Arena = await Fucker.GetArena();
-                if (Arena == null) throw new Exception("error");
 
                 if (await Fucker.JoinArena(Arena) && Arena.GroupId != "")
                 {
@@ -78,11 +77,7 @@ namespace LearningFucker.Handler
             try
             {
                 var round = await Fucker.Fight(Arena);
-                if (round == null)
-                {
-                    throw new Exception("error");
 
-                }
 
                 if (round.CurrentIndex == roundIndex && round.Status == "Start")
                 {
@@ -106,7 +101,6 @@ namespace LearningFucker.Handler
                         if (await Fucker.GetPKResult(Arena))
                         {
                             var gladiator = Arena.Results.FindIndex(s => s.Gladiator.UserName == Fucker.Worker.User.UserName);
-                            if (gladiator < 0) throw new Exception("error");
 
                             TaskForWork.Integral += Arena.Results[gladiator].PKScroe;
                             if (TaskForWork.LimitIntegral == TaskForWork.Integral)
