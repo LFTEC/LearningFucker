@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "LearningFucker.Console": {
+      "commandName": "Project",
+      "commandLineArgs": "--tasks id 14"
+    }
+  }
+}
