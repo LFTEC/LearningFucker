@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LearningFucker.Models;
 using System.Diagnostics;
+using NLog.Fluent;
 
 namespace LearningFucker.Handler
 {
@@ -28,17 +29,31 @@ namespace LearningFucker.Handler
         {
             try
             {
+                if(courseList.List.All(s=>s.Detail != null && s.Detail.Complete))
+                {
+                    //所有课程都已完成学习, 即使学分没拿满, 也无法再进行学习
+                    Logger.GetLogger.Warn("All courses completed, no new learning possible. ");
+                    Complete();
+                    return;
+                }
+
+                Logger.GetLogger.Info("Randomly choose a course to study.");
                 Random random = new Random();
                 int id = random.Next(0, courseList.List.Count - 1);
 
-                if (courseList.List[id].Detail != null && courseList.List[id].Detail.Complete)      //可能会死循环
+                if (courseList.List[id].Detail != null && courseList.List[id].Detail.Complete)     
                 {
                     System.Threading.Thread.Sleep(100);
                     DoWork();
                     return;
                 }
 
+
                 var course = courseList.List[id];
+                Logger.GetLogger.Info($"Preparing for course: {course.ProjID}");
+#if DEBUG
+                Logger.GetLogger.Debug($"Course Info: {course}");
+#endif
 
                 await Fucker.GetCourseDetail(course);
                 await Fucker.GetCourseAppendix(course);
@@ -152,6 +167,8 @@ namespace LearningFucker.Handler
 
                 this.TaskForWork.LimitIntegral = courseList.List[0].Appendix.MaxStudyIntegral;
                 timer.Start();
+
+                Logger.GetLogger.Info("Preparation for compulsory courses. ");
                 DoWork();
             }
             catch(Exception ex)

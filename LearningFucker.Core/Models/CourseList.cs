@@ -62,6 +62,11 @@ namespace LearningFucker.Models
         public CourseDetail Detail { get; set; }
 
         public CourseAppendix Appendix { get; set; }
+
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
     }
 
     public class ElectiveCourse

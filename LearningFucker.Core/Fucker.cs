@@ -258,6 +258,7 @@ namespace LearningFucker
             study.TodayStudyTime = tmpStudy.TodayStudyTime;
             study.ExamIntegral = tmpStudy.ExamIntegral;
             study.StudyIntegral = tmpStudy.StudyIntegral;
+            study.AllowIntegral = tmpStudy.AllowIntegral;
             return true;
         }
 

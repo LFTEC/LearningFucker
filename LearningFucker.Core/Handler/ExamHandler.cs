@@ -20,7 +20,12 @@ namespace LearningFucker.Handler
                 int id = random.Next(0, courseList.List.Count - 1);
 
                 var course = courseList.List[id];
-
+                await Fucker.GetCourseAppendix(course);
+                if(!course.Appendix.IsExam)
+                {
+                    DoWork();
+                    return;
+                }
                 var examList = await Fucker.GetExamList(course);
 
                 if (examList == null || examList.Count == 0)

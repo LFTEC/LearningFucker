@@ -33,6 +33,7 @@ namespace LearningFucker.Models
         /// 学习获取积分
         /// </summary>
         public decimal StudyIntegral { get; set; }
+        public decimal AllowIntegral { get; set; }
 
         public CourseDetail Course { get; set; }
 
