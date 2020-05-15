@@ -26,6 +26,14 @@ namespace LearningFucker.Handler
 
                 var course = courseList.List[id];
 
+                await Fucker.GetCourseDetail(course);
+                if(course.Detail.QuestionCount <= 0)    //无练习题的选修课, 退出重选
+                {
+                    System.Threading.Thread.Sleep(100);
+                    DoWork();
+                    return;
+                }
+
                 var integral = await StartExercise(course);
                 TaskForWork.Integral += integral;
                 if (TaskForWork.LimitIntegral <= TaskForWork.Integral)
@@ -34,6 +42,7 @@ namespace LearningFucker.Handler
                 }
                 else
                 {
+                    System.Threading.Thread.Sleep(100);
                     DoWork();
                 }
             }
