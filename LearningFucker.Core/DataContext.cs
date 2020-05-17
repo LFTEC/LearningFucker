@@ -14,7 +14,7 @@ namespace LearningFucker
         {
 
             Question question = new Question();
-            using (MySqlConnection connection = new MySqlConnection("Data Source=home.jcdev.cc;Port=5106;database=learning;Uid=root;Pwd=JC!230jq;"))
+            using (MySqlConnection connection = new MySqlConnection("Data Source=server.jcdev.cc;Port=5106;database=learning;Uid=root;Pwd=JC!230jq;"))
             {
                 MySqlCommand command = new MySqlCommand("select * from tm where tmid = @tmid;", connection);
                 MySqlParameter parameter = new MySqlParameter("tmid", tmid);
@@ -59,7 +59,7 @@ namespace LearningFucker
         public async Task<bool> InsertRow(Question question)
         {
 
-            using (MySqlConnection connection = new MySqlConnection("Data Source=home.jcdev.cc;Port=5106;database=learning;Uid=root;Pwd=JC!230jq;"))
+            using (MySqlConnection connection = new MySqlConnection("Data Source=server.jcdev.cc;Port=5106;database=learning;Uid=root;Pwd=JC!230jq;"))
             {
                 string sql;
                 sql = @"insert tm values(@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13);";
