@@ -499,10 +499,10 @@ namespace LearningFucker
             valuePairs.Add("resultId", result.ResultId);
             var tmpResult = await Post<dynamic>("Api/PointAnswer/GetPointAnswerResult", GetContent(valuePairs));
 
-            result.Status = tmpResult.pointAnswerResult.Status;
+            result.Status = tmpResult.Status;
             result.Integral = tmpResult.pointAnswerIntegral;
 
-            BreakthroughResult tmpResult2 = JsonConvert.DeserializeObject<BreakthroughResult>(JsonConvert.SerializeObject(tmpResult.pointAnswerResult.Result));
+            BreakthroughResult tmpResult2 = JsonConvert.DeserializeObject<BreakthroughResult>(JsonConvert.SerializeObject(tmpResult.Result));
 
             result.BTime = tmpResult2.BTime;
             result.ETime = tmpResult2.ETime;

@@ -334,7 +334,7 @@ namespace LearningFucker.Models
         public string ResultId { get; set; }
 
         /// <summary>
-        /// 状态 ,现在是 fail是成功
+        /// 状态 ,现在是 Pass是成功
         /// </summary>
         public string Status { get; set; }
 
