@@ -126,6 +126,12 @@ namespace LearningFucker.Handler
         {
             try
             {
+                if(Studies == null)
+                {
+                    Stop();
+                    return;
+                }
+
                 var study = Studies.FirstOrDefault(s => s.Complete == false);
                 if (study == null)
                     Stop();
