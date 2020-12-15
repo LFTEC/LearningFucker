@@ -39,7 +39,7 @@ namespace LearningFucker.Handler
 
                 Logger.GetLogger.Info("Randomly choose a course to study.");
                 Random random = new Random();
-                int id = random.Next(0, courseList.List.Count - 1);
+                int id = random.Next(0, courseList.List.Count);
 
                 if (courseList.List[id].Detail != null && courseList.List[id].Detail.Complete)     
                 {
@@ -57,6 +57,12 @@ namespace LearningFucker.Handler
 
                 await Fucker.GetCourseDetail(course);
                 await Fucker.GetCourseAppendix(course);
+
+                if(course.Detail.WareList.All(s=>s.AllowIntegral == 0))
+                {
+                    course.Detail.Complete = true;
+                    DoWork();
+                }
 
                 if (course.Detail.WareList != null && course.Detail.WareList.Count > 0)
                     DoStudy(course, course.Detail.WareList[0]);

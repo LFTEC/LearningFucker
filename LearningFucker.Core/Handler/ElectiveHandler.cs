@@ -30,7 +30,7 @@ namespace LearningFucker.Handler
             try
             {
                 Random random = new Random();
-                int id = random.Next(0, propertyList.List[0].SubNodes.Count - 1);
+                int id = random.Next(0, propertyList.List[0].SubNodes.Count);
 
                 var context = propertyList.List[0].SubNodes[id];
 

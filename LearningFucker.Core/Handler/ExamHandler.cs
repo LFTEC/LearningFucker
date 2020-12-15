@@ -17,7 +17,7 @@ namespace LearningFucker.Handler
             try
             {
                 Random random = new Random();
-                int id = random.Next(0, courseList.List.Count - 1);
+                int id = random.Next(0, courseList.List.Count);
 
                 var course = courseList.List[id];
                 await Fucker.GetCourseAppendix(course);
