@@ -29,41 +29,45 @@ namespace LearningFucker.Models
         /// </summary>
         public string PointName { get; set; }
 
-        /// <summary>
-        /// 级别
-        /// </summary>
-        public int Level { get; set; }
+        ///// <summary>
+        ///// 级别
+        ///// </summary>
+        //public int Level { get; set; }
 
         /// <summary>
         /// 问题数量
         /// </summary>
         public int QuestionNumber { get; set; }
 
-        /// <summary>
-        /// 需答对数量
-        /// </summary>
-        public int PassQuestionNumber { get; set; }
+        ///// <summary>
+        ///// 需答对数量
+        ///// </summary>
+        //public int PassQuestionNumber { get; set; }
 
         /// <summary>
         /// 答题时间
         /// </summary>
         public int AnswerTime { get; set; }
 
+        public bool LimitTime { get; set; }
+        public int MaxPointNumber { get; set; }
+        public int UserPointNumber { get; set; }
 
-        /// <summary>
-        /// 备注
-        /// </summary>
-        public string PointRemark { get; set; }
+
+        ///// <summary>
+        ///// 备注
+        ///// </summary>
+        //public string PointRemark { get; set; }
 
         /// <summary>
         /// 是否已通过
         /// </summary>
-        public bool IsPass { get; set; }
+        public bool CanJoin { get; set; }
 
-        /// <summary>
-        /// 项目积分
-        /// </summary>
-        public decimal Integral { get; set; }
+        ///// <summary>
+        ///// 项目积分
+        ///// </summary>
+        //public decimal Integral { get; set; }
 
         /// <summary>
         /// 试题清单

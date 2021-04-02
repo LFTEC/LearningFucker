@@ -24,6 +24,7 @@ namespace LearningFucker.Models
 
     public class Course
     {
+        
         /// <summary>
         /// 课程id
         /// </summary>
@@ -67,6 +68,37 @@ namespace LearningFucker.Models
         {
             return JsonConvert.SerializeObject(this);
         }
+
+        public StudyStatus Status { get; set; }
+
+        /// <summary>
+        /// 本周总学习时长(分钟)
+        /// </summary>
+        public decimal SumStudyTime { get; set; }
+        /// <summary>
+        /// 本周总学习积分
+        /// </summary>
+        public decimal SumIntegral { get; set; }
+
+        /// <summary>
+        /// 本周考试已获取积分
+        /// </summary>
+        public decimal ExamIntegral { get; set; }
+
+        /// <summary>
+        /// 每周可获取考试积分
+        /// </summary>
+        public decimal ExamMaxIntegral { get; set; }
+
+        /// <summary>
+        /// 每周可学习积分
+        /// </summary>
+        public decimal MaxIntegral { get; set; }
+
+
+        private Fucker fucker;
+
+
     }
 
     public class ElectiveCourse
@@ -135,6 +167,32 @@ namespace LearningFucker.Models
         /// </summary>
         [JsonProperty("AllowIntegral")]
         public decimal AllowExerciseIntegral { get; set; }
+
+        public StudyStatus Status { get; set; }
+
+        /// <summary>
+        /// 本周总学习时长(分钟)
+        /// </summary>
+        public decimal SumStudyTime { get; set; }
+        /// <summary>
+        /// 本周总学习积分
+        /// </summary>
+        public decimal SumIntegral { get; set; }
+
+        /// <summary>
+        /// 本周考试已获取积分
+        /// </summary>
+        public decimal ExamIntegral { get; set; }
+
+        /// <summary>
+        /// 每周可获取考试积分
+        /// </summary>
+        public decimal ExamMaxIntegral { get; set; }
+
+        /// <summary>
+        /// 每周可学习积分
+        /// </summary>
+        public decimal MaxIntegral { get; set; }
     }
 
     public class CourseDetail
@@ -220,6 +278,8 @@ namespace LearningFucker.Models
 
         public bool Complete { get; set; }
 
+        public StudyStatus Status { get; set; }
+
     }
 
     public class CourseAppendix
@@ -241,7 +301,7 @@ namespace LearningFucker.Models
 
         public string PraiseOrProgress { get; set; }
         /// <summary>
-        /// 学习可得积分
+        /// 学习可得积分(非本课程，而是总学习可得积分
         /// </summary>
         public decimal MaxStudyIntegral { get; set; }
         /// <summary>

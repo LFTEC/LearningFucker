@@ -73,13 +73,16 @@ namespace LearningFucker.Models
         /// <summary>
         /// 获得积分
         /// </summary>
-        public decimal Integral { get; set; }
+        public decimal Integration { get; set; }
+
+        public decimal IntegrationAdd { get; set; }
 
         /// <summary>
         /// 答题结果
         /// </summary>
         public string Gather { get; set; }
-
         
+        [JsonProperty("list")]
+        public List<Question> Questions { get; set; }
     }
 }
