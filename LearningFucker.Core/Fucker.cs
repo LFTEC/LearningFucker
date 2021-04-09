@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using System.Web;
 using LearningFucker.Models;
 using System.Collections;
+using Serilog;
 
 namespace LearningFucker
 {
@@ -19,12 +20,12 @@ namespace LearningFucker
             httpClient = new HttpClient();
             httpClient.BaseAddress = new Uri("https://learning.whchem.com:6443");
             httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla /5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1");
-
+            Logger = Log.Logger.ForContext("class", "fucker");
             this.worker = worker;
         }
 
-        
 
+        private ILogger Logger;
         private HttpClient httpClient;
         private string user_token;
         public const int POLLING_TIME = 20000;
@@ -53,22 +54,32 @@ namespace LearningFucker
         /// <returns></returns>
         public async Task<User> Login(string userId, string password)
         {
-            Dictionary<string, string> token = new Dictionary<string, string>();
-            token.Add("username", userId);
-            token.Add("password", password);
-
-            HttpContent httpContent;
-            httpContent = new FormUrlEncodedContent(token);
-            httpContent.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
-            User user = await Post<User>("Api/User/Login", httpContent);
-            if (user != null && !string.IsNullOrEmpty(user.UserName))
+            try
             {
-                UserToken = user.Token;
-                return user;
+                Dictionary<string, string> token = new Dictionary<string, string>();
+                token.Add("username", userId);
+                token.Add("password", password);
+                Logger.Information("准备登陆; 用户名：{userId}，密码：{password}", userId, password);
+                HttpContent httpContent;
+                httpContent = new FormUrlEncodedContent(token);
+                httpContent.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
+                User user = await Post<User>("Api/User/Login", httpContent);
+                if (user != null && !string.IsNullOrEmpty(user.UserName))
+                {
+                    UserToken = user.Token;
+                    Logger.Information("用户{realName}({userId})登陆成功", user.RealName, userId);
+                    return user;
+                }
+                else
+                {
+                    Logger.Warning("登陆失败{userId}", userId);
+                    return null;
+                }
             }
-            else
+            catch(Exception ex)
             {
-                return null;
+                Logger.Error(ex, "用户登录时发生错误, 用户id:{userId}", userId);
+                throw ex;
             }
         }
 
@@ -78,7 +89,17 @@ namespace LearningFucker
         /// <returns></returns>
         public async Task<AppInfo> GetAppInfo()
         {
-            return await Get<AppInfo>("Api/Common/GetAppConfigInfo", null);
+            try
+            {
+                Logger.Information("get appconfigInfo");
+                var info = await Get<AppInfo>("Api/Common/GetAppConfigInfo", null);
+                return info;
+            }
+            catch(Exception ex)
+            {
+                Logger.Error(ex, "Error");
+                return null;
+            }
         }
 
         /// <summary>
@@ -570,7 +591,16 @@ namespace LearningFucker
 
             Dictionary<string, string> valuePairs = new Dictionary<string, string>();
             valuePairs.Add("resultId", result.ResultId);
-            var tmpResult = await Post<dynamic>("Api/PointAnswer/GetPointAnswerResult", GetContent(valuePairs));
+            int i = 0;
+            dynamic tmpResult = null;
+            while(i++ < 3)
+            {
+                tmpResult = await Post<dynamic>("Api/PointAnswer/GetPointAnswerResult", GetContent(valuePairs));
+                if (tmpResult.result.Status == "End")
+                    break;
+            }
+            
+
 
             BreakthroughResult tmpResult2 = JsonConvert.DeserializeObject<BreakthroughResult>(JsonConvert.SerializeObject(tmpResult.Result));
 
@@ -803,7 +833,15 @@ namespace LearningFucker
         {
             Dictionary<string, string> valuePairs = new Dictionary<string, string>();
             valuePairs.Add("resultid", result.ResultId);
-            var tmpResult = await Post<dynamic>("Api/WeeklyPractice/GetResult", GetContent(valuePairs));
+            int i = 0;
+            dynamic tmpResult = null;
+            while(i++ < 3)
+            {
+                tmpResult = await Post<dynamic>("Api/WeeklyPractice/GetResult", GetContent(valuePairs));
+                if (tmpResult.result.Status == "End")
+                    break;
+            }
+            
 
             result.Status = tmpResult.result.Status;
             PracticeResult tmpResult2 = JsonConvert.DeserializeObject<PracticeResult>(JsonConvert.SerializeObject(tmpResult.result.Result));
@@ -870,14 +908,17 @@ namespace LearningFucker
                     querystring = querystring.Substring(0, querystring.LastIndexOf("&"));
                     url = url + "&" + querystring;
                 }
+                Logger.Information("GET: {url}", url);
 
                 response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseContentRead);
-                if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                Logger.Information("response status code:{statusCode}", response.StatusCode);
+                if (!response.IsSuccessStatusCode)
                 {
                     throw new Exception("网络访问异常");
                 }
 
                 result = await response.Content.ReadAsStringAsync();
+                Logger.Information("GET response: {content}", result);
                 dynamic obj = JsonConvert.DeserializeObject(result);
                 if (obj.state != "success")
                     throw new Exception("接口返回数据异常!");
@@ -895,7 +936,7 @@ namespace LearningFucker
                 }
                 else
                 {
-                    
+                    Logger.Error(ex, "GET Exception");
                     throw new TransportException(string.Format("GET Error:{0}. Http Code:{1}, Response: {2}", url, response == null ? "null": response.StatusCode.ToString(), result), ex);
                 }
             }
@@ -912,13 +953,19 @@ namespace LearningFucker
             string result = "";
             try
             {
+                string body = "";
+                if(content != null)
+                    body = await content?.ReadAsStringAsync();
+                Logger.Information("POST {url} {body}", requestUrl, body);
                 response = await httpClient.PostAsync(requestUrl, content);
+                Logger.Information("response status code:{statusCode}", response.StatusCode);
                 if (!response.IsSuccessStatusCode)
                 {
                     throw new Exception("网络访问异常, return status code: " + response.StatusCode);
                 }
 
                 result = await response.Content.ReadAsStringAsync();
+                Logger.Information("POST response: {content}", result);
                 dynamic obj = JsonConvert.DeserializeObject(result);
                 if (obj.state != "success")
                 {
@@ -938,6 +985,7 @@ namespace LearningFucker
                 }
                 else
                 {
+                    Logger.Error(ex, "POST Exception");
                     throw new TransportException(string.Format("POST Error:{0}|{1}. Http Code: {2}, Response: {3}", requestUrl, JsonConvert.SerializeObject(content), response == null? "null": response.StatusCode.ToString(), result), ex);
                 }
             }

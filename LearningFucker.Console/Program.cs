@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
 using ConsoleTables;
+using Serilog;
+using Serilog.Sinks.Elasticsearch;
 
 namespace LearningFucker.Console
 {
@@ -17,29 +19,43 @@ namespace LearningFucker.Console
         
         static void Main(string[] args)
         {
-            Settings dealer = new Settings();
-            
-            dealer.InitConfig();
+            try
+            {
+                Log.Logger = new LoggerConfiguration()
+                    .MinimumLevel.Information()
+                    .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://server.jcdev.cc:9200"))
+                    {
+                        AutoRegisterTemplate = true,
+                        AutoRegisterTemplateVersion = AutoRegisterTemplateVersion.ESv6
+                    })
+                    .Enrich.WithProperty("guid", System.Guid.NewGuid())
+                    .CreateLogger();
 
-            Parser.Default.ParseArguments<AddUser, List, Study>(args)
-                .WithParsed<AddUser>(options =>
-                {
-                    var userId = options.UserName;
-                    var password = options.Password;
-                    if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(password))
+
+
+                Settings dealer = new Settings();
+
+                dealer.InitConfig();
+
+                Parser.Default.ParseArguments<AddUser, List, Study>(args)
+                    .WithParsed<AddUser>(options =>
                     {
-                        System.Console.WriteLine("username or password incorrect!");
-                        return;
-                    }
-                    else
-                    {
-                        userId = userId.Trim();
-                        password = password.Trim();
-                        Job job = new Job(userId, password);
-                        var login = job.LoginAsync().Result;
-                        if (login)
+                        var userId = options.UserName;
+                        var password = options.Password;
+                        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(password))
                         {
-                            dealer.SavePassword(userId, password);
+                            System.Console.WriteLine("username or password incorrect!");
+                            return;
+                        }
+                        else
+                        {
+                            userId = userId.Trim();
+                            password = password.Trim();
+                            Job job = new Job(userId, password);
+                            var login = job.LoginAsync().Result;
+                            if (login)
+                            {
+                                dealer.SavePassword(userId, password);
 
                             //await dealer.Worker.Init();
 
@@ -49,96 +65,106 @@ namespace LearningFucker.Console
                             //taskList.Add(14);
                             //Worker.StartWork(taskList, false);
                         }
-                        else
-                        {
-                            System.Console.WriteLine("username or password incorrect!");
-                        }
-                    }
-                })
-                .WithParsed<RemoveUser>(options=>
-                {
-
-                })
-                .WithParsed<List>(options =>
-                {
-                    if (JobList == null) GetJobList().Wait();
-                    if (JobList == null)
-                        return;
-
-                    if(options.UserStatus)  //显示用户信息
-                    {
-                        foreach (var job in JobList)
-                        {
-                            job.GetStatus().Wait();
-                            System.Console.WriteLine($"user {job.Worker.User.RealName}({job.Worker.User.UserName}), dept {job.Worker.User.CompanyName}\r\nstatistics:");
-
-                            System.Console.Write($"Ranking:{job.Worker.UserStatistics.IntegralRanking}");
-                            System.Console.Write($"\tSum Integral:{job.Worker.UserStatistics.SumIntegral}");
-                            System.Console.Write($"\tToday Integral:{job.Worker.UserStatistics.TodayIntegral}");
-                            System.Console.Write($"\tWeek Integral:{job.Worker.UserStatistics.WeekIntegral}");
-                            System.Console.Write($"\r\n");
-
-                        }
-                    }
-                    else if(options.Tasks)  //显示用户任务清单
-                    {                        
-                        foreach (var job in JobList)
-                        {
-                            System.Console.WriteLine($"user {job.Worker.User.RealName}({job.Worker.User.UserName}), dept {job.Worker.User.CompanyName}\r\nTasks:\r\n");
-                            var table = new ConsoleTable("id", "name", "integral", "required");
-                            job.GetStatus().Wait();
-
-                            foreach (var task in job.Worker.TaskList)
+                            else
                             {
-                                table.AddRow(task.TaskType, task.Name, task.Integral, task.LimitIntegral);
+                                System.Console.WriteLine("username or password incorrect!");
                             }
-                            table.Write(Format.Minimal);
-                            
-                            System.Console.WriteLine();
-
                         }
-                    }
-                })
-                .WithParsed<Study>(options =>
-                {
-                    GetJobList().Wait();
-                    if (JobList == null) return;
-                    
-                    List<Task> tasks = new List<Task>();
-                    foreach (var job in JobList)
+                    })
+                    .WithParsed<RemoveUser>(options =>
                     {
-                        List<int> studyList;
-                        if (options.AllTask || options.Tasks?.Count() == 0)
-                            studyList = job.Worker.CanLearnedAsync().Result;
-                        else
-                        {
-                            studyList = options.Tasks.ToList();
-                            studyList = job.Worker.CanLearnedAsync(studyList).Result;
+
+                    })
+                    .WithParsed<List>(options =>
+                    {
+                        if (JobList == null) GetJobList().Wait();
+                        if (JobList == null)
+                            return;
+
+                        if (options.UserStatus)  //显示用户信息
+                    {
+                            foreach (var job in JobList)
+                            {
+                                job.GetStatus().Wait();
+                                System.Console.WriteLine($"user {job.Worker.User.RealName}({job.Worker.User.UserName}), dept {job.Worker.User.CompanyName}\r\nstatistics:");
+
+                                System.Console.Write($"Ranking:{job.Worker.UserStatistics.IntegralRanking}");
+                                System.Console.Write($"\tSum Integral:{job.Worker.UserStatistics.SumIntegral}");
+                                System.Console.Write($"\tToday Integral:{job.Worker.UserStatistics.TodayIntegral}");
+                                System.Console.Write($"\tWeek Integral:{job.Worker.UserStatistics.WeekIntegral}");
+                                System.Console.Write($"\r\n");
+
+                            }
                         }
+                        else if (options.Tasks)  //显示用户任务清单
+                    {
+                            foreach (var job in JobList)
+                            {
+                                System.Console.WriteLine($"user {job.Worker.User.RealName}({job.Worker.User.UserName}), dept {job.Worker.User.CompanyName}\r\nTasks:\r\n");
+                                var table = new ConsoleTable("id", "name", "integral", "required");
+                                job.GetStatus().Wait();
 
-                        job.StudyList = studyList;
-                        if (!(studyList?.Count > 0))
-                            continue;                                              
+                                foreach (var task in job.Worker.TaskList)
+                                {
+                                    table.AddRow(task.TaskType, task.Name, task.Integral, task.LimitIntegral);
+                                }
+                                table.Write(Format.Minimal);
 
-                        var task = job.Worker.StartWork(studyList, false);
-                        
-                        tasks.Add(task);
+                                System.Console.WriteLine();
+
+                            }
+                        }
+                    })
+                    .WithParsed<Study>(options =>
+                    {
+                        GetJobList().Wait();
+                        if (JobList == null) return;
+
+                        List<Task> tasks = new List<Task>();
+                        foreach (var job in JobList)
+                        {
+                            List<int> studyList;
+                            if (options.AllTask || options.Tasks?.Count() == 0)
+                                studyList = job.Worker.CanLearnedAsync().Result;
+                            else
+                            {
+                                studyList = options.Tasks.ToList();
+                                studyList = job.Worker.CanLearnedAsync(studyList).Result;
+                            }
+
+                            job.StudyList = studyList;
+                            if (!(studyList?.Count > 0))
+                                continue;
+
+                            var task = job.Worker.StartWork(studyList, false);
+
+                            tasks.Add(task);
                         //task.Start();
-                        
+
 
                         job.Worker.TaskRefresed += sender =>
-                        {
-                            BuildStudyTable();
-                        };
-                        
-                    }
+                            {
+                                BuildStudyTable();
+                            };
 
-                    BuildStudyTable();
-                    Task.WaitAll(tasks.ToArray());
-                })
-                .WithNotParsed(error=> {
-                    error.ToList();
-                });
+                        }
+
+                        BuildStudyTable();
+                        Task.WaitAll(tasks.ToArray());
+                    })
+                    .WithNotParsed(error =>
+                    {
+                        error.ToList();
+                    });
+            }
+            catch(Exception)
+            {
+
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         static void BuildStudyTable()
@@ -261,7 +287,7 @@ namespace LearningFucker.Console
         [Option("tasks", HelpText = "list tasks", SetName = "task", Required = true)]
         public bool Tasks { get; set; }
 
-        [Option("users", HelpText = "list user information", SetName = "user", Required = true)]
+        [Option("users", HelpText = "list user Information", SetName = "user", Required = true)]
         public bool UserStatus { get; set; }
     }
 

@@ -154,8 +154,8 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NLog">
-      <Version>4.7.0</Version>
+    <PackageReference Include="Serilog.Sinks.Elasticsearch">
+      <Version>8.4.1</Version>
     </PackageReference>
     <PackageReference Include="System.Security.Cryptography.X509Certificates">
       <Version>4.3.0</Version>

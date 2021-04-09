@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using LearningFucker.Models;
 using System.Diagnostics;
 using System.Threading;
+using Serilog;
 
 namespace LearningFucker.Handler
 {
@@ -33,13 +34,13 @@ namespace LearningFucker.Handler
                 {
                     if (CancellationToken.IsCancellationRequested)
                     {
-                        Logger.GetLogger.Debug("必修课程学习已结束！");
+                        Log.Debug("必修课程学习已结束！");
                         this.Stop();
                         return;
                     }
                     if(cancel.IsCancellationRequested)
                     {
-                        Logger.GetLogger.Debug("必修课程学习已结束！");
+                        Log.Debug("必修课程学习已结束！");
                         this.Complete();
                         return;
                     }
@@ -48,12 +49,12 @@ namespace LearningFucker.Handler
                     {
 
                         //所有课程都已完成学习, 即使学分没拿满, 也无法再进行学习
-                        Logger.GetLogger.Warn("All courses completed, no new learning possible. ");
+                        Log.Warning("All courses completed, no new learning possible. ");
                         Complete();
                         return;
                     }
 
-                    Logger.GetLogger.Info("Randomly choose a course to study.");
+                    Log.Information("Randomly choose a course to study.");
                     Random random = new Random();
                     int id = random.Next(0, courseList.Count);
                     if(courseList.List[id].Detail?.Complete == true)
@@ -63,8 +64,8 @@ namespace LearningFucker.Handler
                     }
 
                     var course = courseList.List[id];
-                    Logger.GetLogger.Info($"Preparing for course: {course.ID}");
-                    Logger.GetLogger.Debug($"Course Info: {course}");
+                    Log.Information($"Preparing for course: {course.ID}");
+                    Log.Debug($"Course Information: {course}");
 
                     await DoStudy(course);
                 }
