@@ -7,6 +7,7 @@ using System.Timers;
 using LearningFucker.Models;
 using LearningFucker.Handler;
 
+
 namespace LearningFucker
 {
     public class Worker
@@ -20,15 +21,19 @@ namespace LearningFucker
 
             Fucker = new Fucker(this);
 
-            WorkList = new List<TaskForWork>();
+            WorkList = new List<Handler.TaskHandlerBase>();
 
             User = new User();
             TaskList = new List<Models.Task>();
+
+            cancellation = new System.Threading.CancellationTokenSource();
         }
 
         private Timer timer;
         private bool studyProcessing = false;
         public AppInfo AppInfo { get; private set; }
+
+        private System.Threading.CancellationTokenSource cancellation;
         public Fucker Fucker { get; private set; }
 
         public event EventHandler WorkStarted;
@@ -37,13 +42,16 @@ namespace LearningFucker
         public List<LearningFucker.Models.Task> TaskList { get; set; }
         public UserStatistics UserStatistics { get; private set; }
 
+        public CourseList CourseList { get; private set; }
+        public ElectiveCourseList ElectiveCourseList { get; private set; }
+
         public User User { get; private set; }
 
         public Timer Timer { get => timer; }
 
         public List<Study> Studies { get; set; }
 
-        private List<TaskForWork> WorkList { get; set; }
+        private List<TaskHandlerBase> WorkList { get; set; }
 
         public Action<Worker> TaskRefresed;
 
@@ -79,6 +87,19 @@ namespace LearningFucker
             OnReportingError?.Invoke(this, errText);
         }
 
+        public async Task<List<int>> CanLearnedAsync(List<int> studyPlan)
+        {
+            await Init();
+
+            return studyPlan.Where(plan => TaskList.Where(task => task.Integral < task.LimitIntegral && task.TaskType == plan).Any()).ToList();
+        }
+
+        public async Task<List<int>> CanLearnedAsync()
+        {
+            List<int> studyPlan = LearningFucker.Models.TaskList.AvailableTasks.ToList();
+            return await CanLearnedAsync(studyPlan);
+        }
+
         public async System.Threading.Tasks.Task Init()
         {
 
@@ -95,7 +116,7 @@ namespace LearningFucker
             {
                 throw new Exception("获取用户任务完成信息时失败, 请重新打开程序重试!");
             }
-
+              
             if (TaskRefresed != null)
                 TaskRefresed(this);
 
@@ -113,6 +134,7 @@ namespace LearningFucker
 
             if (TaskRefresed != null)
                 TaskRefresed(this);
+            
 
         }
 
@@ -152,7 +174,7 @@ namespace LearningFucker
             }
         }
 
-        public void StartWork(List<int> tasks, bool parallel)
+        public async System.Threading.Tasks.Task StartWork(List<int> tasks, bool parallel)
         {
             if (tasks == null || tasks.Count == 0)
                 return;
@@ -163,11 +185,37 @@ namespace LearningFucker
 
             Timer.Start();
 
+            var courseService = new Service.CourseService(Fucker);
+            this.CourseList = await courseService.GetCourseList();
+            this.ElectiveCourseList = await courseService.GetElectiveCourseListAsync();
+
             LaunchWorkList(tasks);
-
-            WorkList[0].Start(Fucker);
-
             WorkStarted?.Invoke(this, new EventArgs());
+
+            if (parallel)
+            {
+                System.Threading.Tasks.Task[] t = new System.Threading.Tasks.Task[WorkList.Count];
+                foreach (var (work,i) in WorkList.Select((work,i)=>(work,i)))
+                {
+                    t[i] = new System.Threading.Tasks.Task(async () =>
+                    {
+                        await work.Start(Fucker);
+                    });
+
+                    t[i].Start();
+                }
+
+                System.Threading.Tasks.Task.WaitAll(t);
+            }
+            else
+            {
+                foreach (var work in WorkList)
+                {
+                    await work.Start(Fucker);
+                }
+            }
+
+            
         }
 
         private void LaunchWorkList(List<int> tasks)
@@ -180,90 +228,74 @@ namespace LearningFucker
                 {
                     case 14:
                         task = TaskList.FirstOrDefault(s => s.TaskType == item);
-                        TaskForWork taskForWork = new TaskForWork(task, new StudyHandler());
-                        taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
-                        taskForWork.OnStopped += TaskForWork_OnStopped;
-                        WorkList.Add(taskForWork);
+                        TaskHandlerBase handler = new StudyHandler(CourseList, cancellation.Token, task);
+                        handler.StatusChanged += new Action<object, Handler.TaskStatus>(WorkItemStatusChanged);
+                        WorkList.Add(handler);
 
-                        taskForWork = new TaskForWork(task, new ExamHandler());
-                        taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
-                        taskForWork.OnStopped += TaskForWork_OnStopped;
-                        WorkList.Add(taskForWork);
+                        handler = new ExamHandler(CourseList, cancellation.Token, task);
+                        handler.StatusChanged += new Action<object, Handler.TaskStatus>(WorkItemStatusChanged);
+                        WorkList.Add(handler);
 
                         break;
                     case 2:
                         task = TaskList.FirstOrDefault(s => s.TaskType == item);
-                        taskForWork = new TaskForWork(task, new ElectiveHandler());
-                        taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
-                        taskForWork.OnStopped += TaskForWork_OnStopped;
-                        WorkList.Add(taskForWork);
+                        handler = new ElectiveHandler(ElectiveCourseList, cancellation.Token, task);
+                        handler.StatusChanged += new Action<object, Handler.TaskStatus>(WorkItemStatusChanged);
+                        WorkList.Add(handler);
 
-                        taskForWork = new TaskForWork(task, new ExerciseHandler());
-                        taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
-                        taskForWork.OnStopped += TaskForWork_OnStopped;
-                        WorkList.Add(taskForWork);
+                        handler = new ExerciseHandler(ElectiveCourseList, cancellation.Token, task);
+                        handler.StatusChanged += new Action<object, Handler.TaskStatus>(WorkItemStatusChanged);
+                        WorkList.Add(handler);
                         break;
                     case 13:
                         task = TaskList.FirstOrDefault(s => s.TaskType == item);
-                        taskForWork = new TaskForWork(task.LimitIntegral, task.Integral, task, new PKHandler());
-                        taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
-                        taskForWork.OnStopped += TaskForWork_OnStopped;
-                        WorkList.Add(taskForWork);
+                        handler = new PKHandler(cancellation.Token, task);
+                        handler.StatusChanged += new Action<object, Handler.TaskStatus>(WorkItemStatusChanged);
+                        WorkList.Add(handler);
                         break;
 
                     case 11:
                         task = TaskList.FirstOrDefault(s => s.TaskType == item);
-                        taskForWork = new TaskForWork(task.LimitIntegral, task.Integral, task, new BreakthroughHandler());
-                        taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
-                        taskForWork.OnStopped += TaskForWork_OnStopped;
-                        WorkList.Add(taskForWork);
+                        handler = new BreakthroughHandler(cancellation.Token, task);
+                        handler.StatusChanged += new Action<object, Handler.TaskStatus>(WorkItemStatusChanged);
+                        WorkList.Add(handler);
                         break;
                     case 7:
                         task = TaskList.FirstOrDefault(s => s.TaskType == item);
-                        taskForWork = new TaskForWork(task.LimitIntegral, task.Integral, task, new WeeklyPracticeHandler());
-                        taskForWork.OnCompleted += new Action<TaskForWork>(WorkItemCompleted);
-                        taskForWork.OnStopped += TaskForWork_OnStopped;
-                        WorkList.Add(taskForWork);
+                        handler = new WeeklyPracticeHandler(cancellation.Token, task);
+                        handler.StatusChanged += new Action<object, Handler.TaskStatus>(WorkItemStatusChanged);
+                        WorkList.Add(handler);
+                        
                         break;
                 }
             }
         }
 
-        private void TaskForWork_OnStopped(TaskForWork obj)
+
+        private void WorkItemStatusChanged(object sender, Handler.TaskStatus status)
         {
-            this.Say("所有任务已停止.");
-            this.WorkStopped?.Invoke(this, new EventArgs());
+            if (WorkList.All(work => work.TaskStatus == Handler.TaskStatus.Completed || work.TaskStatus == Handler.TaskStatus.Stopped))
+            {
+                if (!WorkList.Any(work => work.TaskStatus == Handler.TaskStatus.Stopped))
+                    this.Say("所有任务已完成");
+
+                WorkStopped?.Invoke(this, new EventArgs());
+            }
+                
 
         }
-
-        private void WorkItemCompleted(TaskForWork workItem)
-        {
-            var index = WorkList.IndexOf(workItem);
-            if (index == WorkList.Count - 1)
-            {
-                this.Say("学习任务已全部结束");
-                this.WorkStopped?.Invoke(this, new EventArgs());
-            }
-            else
-            {
-                index++;
-                WorkList[index].Start(Fucker);
-            }
-        }
+        
 
         public void StopWork()
         {
-            var list = WorkList.Where(s => s.TaskStatus == Handler.TaskStatus.Working);
-            if (list.Count() == 0) return;
+            this.Say("所有进行中任务停止中...");
 
             if (timer.Enabled)
                 timer.Stop();
 
-            this.Say("所有进行中任务停止中...");
-            foreach (var item in list)
-            {
-                item.Stop();
-            }
+            
+            cancellation.Cancel();
+
             
         }
 

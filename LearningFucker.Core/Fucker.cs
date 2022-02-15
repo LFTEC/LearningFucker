@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using System.Web;
 using LearningFucker.Models;
 using System.Collections;
+using Serilog;
 
 namespace LearningFucker
 {
@@ -17,17 +18,17 @@ namespace LearningFucker
         public Fucker(Worker worker)
         {
             httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri("https://learning.whchem.com:4443");
+            httpClient.BaseAddress = new Uri("https://learning.whchem.com:6443");
             httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla /5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1");
-
+            Logger = Log.Logger.ForContext("class", "fucker");
             this.worker = worker;
         }
 
-        
 
+        private ILogger Logger;
         private HttpClient httpClient;
         private string user_token;
-        public const int POLLING_TIME = 30000;
+        public const int POLLING_TIME = 20000;
         private Worker worker;
 
         public Worker Worker { get=>worker; }
@@ -53,22 +54,32 @@ namespace LearningFucker
         /// <returns></returns>
         public async Task<User> Login(string userId, string password)
         {
-            Dictionary<string, string> token = new Dictionary<string, string>();
-            token.Add("username", userId);
-            token.Add("password", password);
-
-            HttpContent httpContent;
-            httpContent = new FormUrlEncodedContent(token);
-            httpContent.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
-            User user = await Post<User>("Api/User/Login", httpContent);
-            if (user != null && !string.IsNullOrEmpty(user.UserName))
+            try
             {
-                UserToken = user.Token;
-                return user;
+                Dictionary<string, string> token = new Dictionary<string, string>();
+                token.Add("username", userId);
+                token.Add("password", password);
+                Logger.Information("准备登陆; 用户名：{userId}，密码：{password}", userId, password);
+                HttpContent httpContent;
+                httpContent = new FormUrlEncodedContent(token);
+                httpContent.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
+                User user = await Post<User>("Api/User/Login", httpContent);
+                if (user != null && !string.IsNullOrEmpty(user.UserName))
+                {
+                    UserToken = user.Token;
+                    Logger.Information("用户{realName}({userId})登陆成功", user.RealName, userId);
+                    return user;
+                }
+                else
+                {
+                    Logger.Warning("登陆失败{userId}", userId);
+                    return null;
+                }
             }
-            else
+            catch(Exception ex)
             {
-                return null;
+                Logger.Error(ex, "用户登录时发生错误, 用户id:{userId}", userId);
+                throw ex;
             }
         }
 
@@ -78,7 +89,17 @@ namespace LearningFucker
         /// <returns></returns>
         public async Task<AppInfo> GetAppInfo()
         {
-            return await Get<AppInfo>("Api/Common/GetAppConfigInfo", null);
+            try
+            {
+                Logger.Information("get appconfigInfo");
+                var info = await Get<AppInfo>("Api/Common/GetAppConfigInfo", null);
+                return info;
+            }
+            catch(Exception ex)
+            {
+                Logger.Error(ex, "Error");
+                return null;
+            }
         }
 
         /// <summary>
@@ -132,13 +153,10 @@ namespace LearningFucker
         /// <param name="pageIndex"></param>
         /// <param name="pageCount"></param>
         /// <returns></returns>
-        public async Task<CourseList> GetCourseList(int pageIndex, int pageCount)
+        public async Task<CourseList> GetCourseList()
         {
             
-            Dictionary<string, string> valuePairs = new Dictionary<string, string>();
-            valuePairs.Add("pageIndex", pageIndex.ToString());
-            valuePairs.Add("pageCount", pageCount.ToString());
-            var list = await Post<CourseList>("Api/TaskStudy/GetList", GetContent(valuePairs));
+            var list = await Post<CourseList>("Api/TaskStudy/GetList", null);
             if(list != null && list.List != null)
             {
                 foreach (var item in list.List)
@@ -156,8 +174,12 @@ namespace LearningFucker
             valuePairs.Add("ProjType", course.ProjType);
             valuePairs.Add("ProjID", course.ProjID);
             valuePairs.Add("Proj2ID", course.Proj2ID);
-            var detail = await Get<CourseDetail>("Api/Courseware/Study/GetCoursewares", valuePairs);
-            course.Detail = detail;
+            var detail = await Get<dynamic>("Api/Courseware/Study/GetCoursewares", valuePairs);
+            course.Detail = JsonConvert.DeserializeObject<CourseDetail>(JsonConvert.SerializeObject(detail));
+            for (int i = 0; i < course.Detail.WareList.Count; i++)
+            {
+                course.Detail.WareList[i].AllowIntegral = detail.WareList[0].ProjInfo.AllowIntegral;
+            }
         }
 
         public async System.Threading.Tasks.Task GetCourseDetail(ElectiveCourse course)
@@ -167,8 +189,12 @@ namespace LearningFucker
             valuePairs.Add("ProjType", course.ProjType);
             valuePairs.Add("ProjID", course.ID);
             valuePairs.Add("Proj2ID", course.Proj2ID);
-            var detail = await Get<CourseDetail>("Api/Courseware/Study/GetCoursewares", valuePairs);
-            course.Detail = detail;
+            var detail = await Get<dynamic>("Api/Courseware/Study/GetCoursewares", valuePairs);
+            course.Detail = JsonConvert.DeserializeObject<CourseDetail>(JsonConvert.SerializeObject(detail));
+            for (int i = 0; i < course.Detail.WareList.Count; i++)
+            {
+                course.Detail.WareList[i].AllowIntegral = detail.WareList[0].ProjInfo.AllowIntegral;
+            }
         }
 
         public async System.Threading.Tasks.Task GetCourseAppendix(Course course)
@@ -243,13 +269,68 @@ namespace LearningFucker
             valuePairs.Add("ProjType", study.ProjType);
             valuePairs.Add("ProjID", study.ProjID);
             valuePairs.Add("Proj2ID", study.Proj2ID);
+            valuePairs.Add("WareID", study.WareID);
             valuePairs.Add("LogID", study.LogId);
 
             var tmpStudy = await Post<Study>("Api/Courseware/PlayPage/GetStudyInfo", GetContent(valuePairs));
-            study.SumStudyTime = tmpStudy.SumStudyTime;
+            study.SumStudyTime = tmpStudy.SumStudyTime;             
             study.TodayStudyTime = tmpStudy.TodayStudyTime;
             study.ExamIntegral = tmpStudy.ExamIntegral;
             study.StudyIntegral = tmpStudy.StudyIntegral;
+            study.AllowIntegral = tmpStudy.AllowIntegral;
+            return true;
+        }
+
+        public async Task<bool> GetWareIntegral(Study study)
+        {
+
+            Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+            valuePairs.Add("ProjType", study.ProjType);
+            valuePairs.Add("ProjID", study.ProjID);
+            valuePairs.Add("Proj2ID", study.Proj2ID);
+            valuePairs.Add("WareID", study.WareID);
+
+            var tmpStudy = await Post<Study>("Api/Courseware/PlayPage/GetWareRemainIntegral", GetContent(valuePairs));
+            study.AllowIntegral = tmpStudy.AllowIntegral;
+            study.SumStudyTimew = tmpStudy.SumStudyTime;
+            return true;
+        }
+
+        public async Task<bool> GetIntegralInfo(Course course)
+        {
+
+            Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+            valuePairs.Add("ProjType", course.ProjType);
+            valuePairs.Add("ProjID", course.ProjID);
+            valuePairs.Add("Proj2ID", "");
+            valuePairs.Add("WareID", "");
+            valuePairs.Add("LogID", "");
+
+            var tmpStudy = await Post<Course>("Api/Courseware/PlayPage/GetStudyInfo", GetContent(valuePairs));
+            course.ExamIntegral = tmpStudy.ExamIntegral;
+            course.SumIntegral = tmpStudy.SumIntegral;
+            course.MaxIntegral = tmpStudy.MaxIntegral;
+            course.ExamMaxIntegral = tmpStudy.ExamMaxIntegral;
+            course.SumStudyTime = tmpStudy.SumStudyTime;
+            return true;
+        }
+
+        public async Task<bool> GetIntegralInfo(ElectiveCourse course)
+        {
+
+            Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+            valuePairs.Add("ProjType", course.ProjType);
+            valuePairs.Add("ProjID", course.ID);
+            valuePairs.Add("Proj2ID", "");
+            valuePairs.Add("WareID", "");
+            valuePairs.Add("LogID", "");
+
+            var tmpStudy = await Post<ElectiveCourse>("Api/Courseware/PlayPage/GetStudyInfo", GetContent(valuePairs));
+            course.ExamIntegral = tmpStudy.ExamIntegral;
+            course.SumIntegral = tmpStudy.SumIntegral;
+            course.MaxIntegral = tmpStudy.MaxIntegral;
+            course.ExamMaxIntegral = tmpStudy.ExamMaxIntegral;
+            course.SumStudyTime = tmpStudy.SumStudyTime;
             return true;
         }
 
@@ -266,6 +347,8 @@ namespace LearningFucker
             valuePairs.Add("studyStatus", "1");
 
             var tmpStudy = await Post<Study>("Api/Courseware/Study/SaveStudyLog", GetContent(valuePairs));
+            if (tmpStudy == null)
+                throw new Exception("保存学习记录出错，是否超时？需重新进行处理。");
             return true;
         }
 
@@ -436,6 +519,37 @@ namespace LearningFucker
             return electiveCourseList;
         }
 
+        public async Task<ElectiveCourseList> GetElectiveCourseList()
+        {
+
+            Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+            valuePairs.Add("name", "");
+            valuePairs.Add("propertyId", "");
+            valuePairs.Add("contextId", "");
+            valuePairs.Add("pageIdx", "0");
+            valuePairs.Add("pageSize", "1000");
+            var electiveCourseList = await Get<ElectiveCourseList>("Api/CourseStudy/GetCourses", valuePairs);
+            if (electiveCourseList != null && electiveCourseList.List != null)
+            {
+                foreach (var item in electiveCourseList.List)
+                {
+                    item.ProjType = "0";
+                }
+            }
+            return electiveCourseList;
+        }
+
+        public async Task<bool> GetExerciseAllowIntegral(ElectiveCourse course)
+        {
+            Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+            valuePairs.Add("TaskType", "15");
+            valuePairs.Add("ProjID", course.ID);
+            var tmpCourse = await Post<ElectiveCourse>("Api/Courseware/PlayPage/GetWareExamRemainIntegral", GetContent(valuePairs));
+            course.AllowExerciseIntegral = tmpCourse.AllowExerciseIntegral;
+            return true;
+        }
+
+
         public async Task<BreakthroughList> GetBreakthroughList()
         {
 
@@ -477,12 +591,18 @@ namespace LearningFucker
 
             Dictionary<string, string> valuePairs = new Dictionary<string, string>();
             valuePairs.Add("resultId", result.ResultId);
-            var tmpResult = await Post<dynamic>("Api/PointAnswer/GetPointAnswerResult", GetContent(valuePairs));
+            int i = 0;
+            dynamic tmpResult = null;
+            while(i++ < 3)
+            {
+                tmpResult = await Post<dynamic>("Api/PointAnswer/GetPointAnswerResult", GetContent(valuePairs));
+                if (tmpResult.result.Status == "End")
+                    break;
+            }
+            
 
-            result.Status = tmpResult.pointAnswerResult.Status;
-            result.Integral = tmpResult.pointAnswerIntegral;
 
-            BreakthroughResult tmpResult2 = JsonConvert.DeserializeObject<BreakthroughResult>(JsonConvert.SerializeObject(tmpResult.pointAnswerResult.Result));
+            BreakthroughResult tmpResult2 = JsonConvert.DeserializeObject<BreakthroughResult>(JsonConvert.SerializeObject(tmpResult.Result));
 
             result.BTime = tmpResult2.BTime;
             result.ETime = tmpResult2.ETime;
@@ -492,6 +612,28 @@ namespace LearningFucker
             result.TotalNum = tmpResult2.TotalNum;
             result.RightNum = tmpResult2.RightNum;
             result.Answer = tmpResult2.Answer;
+
+            return true;
+        }
+
+        public async Task<bool> GetIntegralDetail(BreakthroughResult result)
+        {
+            Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+            valuePairs.Add("id", result.ResultId);
+            var tmpResult = await Post<dynamic>("Api/Integral/GetIntegralDetail", GetContent(valuePairs));
+
+            result.Integral = tmpResult.detail.Integral;
+
+            return true;
+        }
+
+        public async Task<bool> GetIntegralDetail(CombatResult result)
+        {
+            Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+            valuePairs.Add("id", result.RecrodID);
+            var tmpResult = await Post<dynamic>("Api/Integral/GetIntegralDetail", GetContent(valuePairs));
+
+            result.PKScroe = tmpResult.detail.Integral;
 
             return true;
         }
@@ -654,17 +796,31 @@ namespace LearningFucker
             return true;
         }
 
-        public async Task<PracticeQuestionList> StartWeeklyPractice()
+        public async Task<PracticeList> GetWeeklyPracticeList()
         {
             Dictionary<string, string> valuePairs = new Dictionary<string, string>();
-            valuePairs.Add("linkId", "");
+            valuePairs.Add("year", "-1");
+            valuePairs.Add("month", "-1");
+            var practiceList = await Post<PracticeList>("Api/WeeklyPractice/GetList", GetContent(valuePairs));
+            return practiceList;
+        }
+
+        public async Task<PracticeQuestionList> StartWeeklyPractice(CWeek week)
+        {
+            Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+            valuePairs.Add("year", week.Year.ToString());
+            valuePairs.Add("month", week.Month.ToString());
+            valuePairs.Add("week", week.Week.ToString());
             var practiceQuestionList = await Post<PracticeQuestionList>("Api/WeeklyPractice/GetQuestion", GetContent(valuePairs));
             return practiceQuestionList;
         }
 
-        public async Task<bool> HandIn(PracticeQuestionList practice, List<ExerciseAnswer> answers, int answerTime)
+        public async Task<bool> HandIn(PracticeQuestionList practice, List<ExerciseAnswer> answers, int answerTime, CWeek week)
         {
             Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+            valuePairs.Add("year", week.Year.ToString());
+            valuePairs.Add("month", week.Month.ToString());
+            valuePairs.Add("week", week.Week.ToString());
             valuePairs.Add("answerstring", JsonConvert.SerializeObject(answers));
             valuePairs.Add("second", answerTime.ToString());
             var result = await Post<PracticeResult>("Api/WeeklyPractice/SubmitTest", GetContent(valuePairs));
@@ -677,11 +833,17 @@ namespace LearningFucker
         {
             Dictionary<string, string> valuePairs = new Dictionary<string, string>();
             valuePairs.Add("resultid", result.ResultId);
-            var tmpResult = await Post<dynamic>("Api/WeeklyPractice/GetResult", GetContent(valuePairs));
+            int i = 0;
+            dynamic tmpResult = null;
+            while(i++ < 3)
+            {
+                tmpResult = await Post<dynamic>("Api/WeeklyPractice/GetResult", GetContent(valuePairs));
+                if (tmpResult.result.Status == "End")
+                    break;
+            }
+            
 
             result.Status = tmpResult.result.Status;
-            result.Integral = tmpResult.Integral;
-
             PracticeResult tmpResult2 = JsonConvert.DeserializeObject<PracticeResult>(JsonConvert.SerializeObject(tmpResult.result.Result));
 
             result.Year = tmpResult2.Year;
@@ -694,7 +856,19 @@ namespace LearningFucker
             result.TotalNum = tmpResult2.TotalNum;
             result.CountRight = tmpResult2.CountRight;
             result.Gather = tmpResult2.Gather;
+            result.Integration = tmpResult2.Integration;
+            result.IntegrationAdd = tmpResult2.Integration;
 
+            return true;
+        }
+
+        public async Task<bool> ReviewResult(PracticeResult result)
+        {
+            Dictionary<string, string> valuePairs = new Dictionary<string, string>();
+            valuePairs.Add("resultid", result.ResultId);
+            var tmpResult = await Post<PracticeResult>("Api/WeeklyPractice/ShowResult", GetContent(valuePairs));
+
+            result.Questions = tmpResult?.Questions;
             return true;
         }
 
@@ -722,26 +896,29 @@ namespace LearningFucker
         {
             HttpResponseMessage response = null;
             string result = "";
+            string url = "";
             try
-            {
-                Random random = new Random();
-                var ran = random.NextDouble().ToString();
-
-                requestUrl = string.Format("{0}?random={1}", requestUrl, ran);
+            {                
+                var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                var time = (DateTime.Now.ToUniversalTime() - epoch).TotalMilliseconds;
+                url = string.Format("{0}?_t={1}", requestUrl, time.ToString());
                 if (pairs != null && pairs.Count() > 0)
                 {
                     var querystring = pairs.Aggregate("", (current, item) => string.Format("{0}{1}={2}&", current, item.Key, HttpUtility.UrlEncode(item.Value, Encoding.UTF8)));
                     querystring = querystring.Substring(0, querystring.LastIndexOf("&"));
-                    requestUrl = requestUrl + "&" + querystring;
+                    url = url + "&" + querystring;
                 }
+                Logger.Information("GET: {url}", url);
 
-                response = await httpClient.GetAsync(requestUrl, HttpCompletionOption.ResponseContentRead);
-                if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseContentRead);
+                Logger.Information("response status code:{statusCode}", response.StatusCode);
+                if (!response.IsSuccessStatusCode)
                 {
                     throw new Exception("网络访问异常");
                 }
 
                 result = await response.Content.ReadAsStringAsync();
+                Logger.Information("GET response: {content}", result);
                 dynamic obj = JsonConvert.DeserializeObject(result);
                 if (obj.state != "success")
                     throw new Exception("接口返回数据异常!");
@@ -759,8 +936,8 @@ namespace LearningFucker
                 }
                 else
                 {
-                    
-                    throw new TransportException(string.Format("GET Error:{0}. Http Code:{1}, Response: {2}", requestUrl, response == null ? "null": response.StatusCode.ToString(), result), ex);
+                    Logger.Error(ex, "GET Exception");
+                    throw new TransportException(string.Format("GET Error:{0}. Http Code:{1}, Response: {2}", url, response == null ? "null": response.StatusCode.ToString(), result), ex);
                 }
             }
         }
@@ -776,13 +953,19 @@ namespace LearningFucker
             string result = "";
             try
             {
+                string body = "";
+                if(content != null)
+                    body = await content?.ReadAsStringAsync();
+                Logger.Information("POST {url} {body}", requestUrl, body);
                 response = await httpClient.PostAsync(requestUrl, content);
-                if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                Logger.Information("response status code:{statusCode}", response.StatusCode);
+                if (!response.IsSuccessStatusCode)
                 {
-                    throw new Exception("网络访问异常");
+                    throw new Exception("网络访问异常, return status code: " + response.StatusCode);
                 }
 
                 result = await response.Content.ReadAsStringAsync();
+                Logger.Information("POST response: {content}", result);
                 dynamic obj = JsonConvert.DeserializeObject(result);
                 if (obj.state != "success")
                 {
@@ -802,6 +985,7 @@ namespace LearningFucker
                 }
                 else
                 {
+                    Logger.Error(ex, "POST Exception");
                     throw new TransportException(string.Format("POST Error:{0}|{1}. Http Code: {2}, Response: {3}", requestUrl, JsonConvert.SerializeObject(content), response == null? "null": response.StatusCode.ToString(), result), ex);
                 }
             }

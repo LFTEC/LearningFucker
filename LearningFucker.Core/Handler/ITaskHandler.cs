@@ -12,9 +12,7 @@ namespace LearningFucker.Handler
         /// 开始处理任务
         /// </summary>
         /// <param name="fucker"></param>
-        bool Start(Fucker fucker);
-
-        bool Stop();
+        Task<bool> Start(Fucker fucker);
 
         TaskStatus TaskStatus { get; }
 

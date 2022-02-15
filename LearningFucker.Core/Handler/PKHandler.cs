@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using LearningFucker.Models;
 using System.Timers;
 
@@ -11,46 +12,56 @@ namespace LearningFucker.Handler
     public class PKHandler : TaskHandlerBase
     {
 
+        public PKHandler(CancellationToken token, Models.Task task)
+            :base(token, task)
+        {
 
+        }
 
-
+        private const int TMNUMBER = 5;
         private Arena Arena { get; set; }
 
-        public override bool Start(Fucker fucker)
+        protected override Task<bool> Start()
         {
-            if (!base.Start(fucker)) return false;
-
-            Start();
-            return true;
+            this.LimitIntegral = this.Task.LimitIntegral;
+            this.Integral = this.Task.Integral;
+            return System.Threading.Tasks.Task.FromResult(true);
         }
 
-        private void Start()
-        {            
-            DoWork();
-        }
 
-        public async override void DoWork()
+        public async override System.Threading.Tasks.Task DoWork()
         {
             try
             {
-                if (this.TaskStatus == TaskStatus.Stopping)
+                if (this.LimitIntegral <= this.Integral)
                 {
-                    TaskStatus = TaskStatus.Stopped;
-                    TaskForWork.TaskStatus = TaskStatus.Stopped;
+                    Complete();
                     return;
                 }
+                    
 
-                Arena = await Fucker.GetArena();
-                if (Arena == null) throw new Exception("error");
+                while (true)
+                {
+                    if (CancellationToken.IsCancellationRequested)
+                    {
+                        this.Stop();
+                        return;
+                    }
 
-                if (await Fucker.JoinArena(Arena) && Arena.GroupId != "")
-                {
-                    await GetArenaBothSide();
-                    StartRound(0);
-                }
-                else
-                {
-                    DoWork();
+                    Arena = await Fucker.GetArena();
+                    Arena.TmNumber = TMNUMBER;
+                    if (await Fucker.JoinArena(Arena) && Arena.GroupId != "")
+                    {
+                        await GetArenaBothSide();
+                        await StartRound(0);
+                    }
+                    else
+                        await System.Threading.Tasks.Task.Delay(1000);
+                    if (this.LimitIntegral <= this.Integral)
+                    {
+                        Complete();
+                        return;
+                    }
                 }
             }
             catch(Exception ex)
@@ -73,16 +84,11 @@ namespace LearningFucker.Handler
 
 
 
-        private async void StartRound(int roundIndex)
+        private async System.Threading.Tasks.Task StartRound(int roundIndex)
         {
             try
             {
                 var round = await Fucker.Fight(Arena);
-                if (round == null)
-                {
-                    throw new Exception("error");
-
-                }
 
                 if (round.CurrentIndex == roundIndex && round.Status == "Start")
                 {
@@ -91,11 +97,11 @@ namespace LearningFucker.Handler
 
                     Arena.Rounds.Add(round);
 
-                    Timer timer = new Timer();
-                    timer.Interval = new Random().Next(5000, 9000);
-                    timer.AutoReset = false;
-                    timer.Elapsed += new ElapsedEventHandler((s, e) => OnReply(s, e, roundIndex));
-                    timer.Start();
+                    var interval = new Random().Next(3000, 6000);
+
+                    await System.Threading.Tasks.Task.Delay(interval);
+                    await OnReply(roundIndex);
+                    
                 }
                 else if (roundIndex == Arena.TmNumber)
                 {
@@ -106,21 +112,21 @@ namespace LearningFucker.Handler
                         if (await Fucker.GetPKResult(Arena))
                         {
                             var gladiator = Arena.Results.FindIndex(s => s.Gladiator.UserName == Fucker.Worker.User.UserName);
-                            if (gladiator < 0) throw new Exception("error");
+                            await Fucker.GetIntegralDetail(Arena.Results[gladiator]);
+                            this.Integral += Arena.Results[gladiator].PKScroe;
 
-                            TaskForWork.Integral += Arena.Results[gladiator].PKScroe;
-                            if (TaskForWork.LimitIntegral == TaskForWork.Integral)
-                                Complete();
-                            else
-                                DoWork();
                         }
                     }
                     else
-                        StartRound(roundIndex);
+                    {
+                        await System.Threading.Tasks.Task.Delay(1000);
+                        await StartRound(roundIndex);
+                    }
                 }
                 else
                 {
-                    StartRound(roundIndex);
+                    await System.Threading.Tasks.Task.Delay(1000);
+                    await StartRound (roundIndex);
                 }
             }
             catch(Exception ex)
@@ -132,7 +138,7 @@ namespace LearningFucker.Handler
             
         }
 
-        private async void OnReply(object sender, ElapsedEventArgs args, int roundIndex)
+        private async System.Threading.Tasks.Task OnReply(int roundIndex)
         {
             try
             {
@@ -153,7 +159,7 @@ namespace LearningFucker.Handler
 
                 if (await Fucker.SubmitQuestion(Arena, round, answer.Replace(";", ",")))
                 {
-                    StartRound(++roundIndex);
+                    await StartRound (++roundIndex);
 
                 }
             }
@@ -164,22 +170,5 @@ namespace LearningFucker.Handler
             }
         }
 
-        public override bool Stop()
-        {
-            if (TaskStatus == TaskStatus.Working)
-            {
-                TaskStatus = TaskStatus.Stopping;
-                return true;
-            }
-            else
-                return false;
-        }
-
-        protected override bool Complete()
-        {
-            TaskStatus = TaskStatus.Completed;
-            TaskForWork.TaskStatus = TaskStatus.Completed;
-            return true;
-        }
     }
 }

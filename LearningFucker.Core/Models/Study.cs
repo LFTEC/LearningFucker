@@ -4,9 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Threading;
 
 namespace LearningFucker.Models
 {
+    public enum StudyStatus
+    {
+        Stop,
+        Processing,
+        Completed
+    }
+
     public class Study
     {
         /// <summary>
@@ -18,21 +26,44 @@ namespace LearningFucker.Models
         public string Proj2ID { get; set; }
         public string WareID { get; set; }
         /// <summary>
-        /// 总学习时长(分钟)
+        /// 本周总学习时长(分钟)
         /// </summary>
         public decimal SumStudyTime { get; set; }
+        /// <summary>
+        /// 课程已学习时长
+        /// </summary>
+        public decimal SumStudyTimew { get; set; }
+        /// <summary>
+        /// 本周总学习积分
+        /// </summary>
+        public decimal SumIntegral { get; set; }
         /// <summary>
         /// 今天学习时长(分钟)
         /// </summary>
         public decimal TodayStudyTime { get; set; }
         /// <summary>
-        /// 考试获取积分
+        /// 本周考试已获取积分
         /// </summary>
         public decimal ExamIntegral { get; set; }
+
+        /// <summary>
+        /// 每周可获取考试积分
+        /// </summary>
+        public decimal ExamMaxIntegral { get; set; }
+
+        /// <summary>
+        /// 每周可学习积分
+        /// </summary>
+        public decimal MaxIntegral { get; set; }
         /// <summary>
         /// 学习获取积分
         /// </summary>
         public decimal StudyIntegral { get; set; }
+
+        /// <summary>
+        /// 课程还允许获取的积分
+        /// </summary>
+        public decimal AllowIntegral { get; set; }
 
         public CourseDetail Course { get; set; }
 
@@ -55,93 +86,74 @@ namespace LearningFucker.Models
             this.Ware.StudyDuration = this.Ware.StudyDuration + duration;
         }
 
-        private Timer timer;
         private Fucker fucker;
 
-        public bool Complete { get; internal set; }
+        public StudyStatus Status { get; internal set; }
 
-        public void Start(Fucker fucker)
+        public async System.Threading.Tasks.Task Start(Fucker fucker, CancellationToken token)
         {
             this.fucker = fucker;
-            this.Complete = false;
-            if (timer == null)
-            {
-                timer = new Timer(Fucker.POLLING_TIME);
-                timer.Elapsed += Timer_Elapsed;
-            }
+            if (Status == StudyStatus.Completed)
+                return;
 
-            if (timer.Enabled)
-                timer.Stop();
-            timer.Start();
+            this.Status = StudyStatus.Processing;
+
+            await Run(token);
         }
 
-        public void Stop()
-        {
-            if (timer != null && timer.Enabled)
-            {
-                timer.Stop();
-            }
-
-            this.Complete = true;
-            StudyComplete?.Invoke(this);
-
-        }
-
-        private async void Timer_Elapsed(object sender, ElapsedEventArgs e)
+        private async System.Threading.Tasks.Task Run(CancellationToken token)
         {
             try
             {
-                await fucker.SaveStudyLog(this);
-                await fucker.GetStudyInfo(this);
-                AddStudyDuration(Fucker.POLLING_TIME / 1000);
-
-                if (this.Ware.StudyDuration >= this.Ware.Duration)
+                while(true)
                 {
-                    Ware.Complete = true;
+                    if (token.IsCancellationRequested)
+                    {
+                        this.Complete();
+                        break;
+                    }
 
-                    this.Stop();
+                    await this.SaveStudyInfo();
+                    await System.Threading.Tasks.Task.Delay(Fucker.POLLING_TIME);
+                    await this.GetStudyInfo();
+                    if (this.Status == StudyStatus.Completed)
+                        return;
+                    if (this.Status == StudyStatus.Stop)
+                        return;
+                    
+                    AddStudyDuration(Fucker.POLLING_TIME / 1000);
                 }
-
-                if (this.Course.StudyDuration >= this.Course.TotalMinute)
-                {
-                    Course.Complete = true;
-                    this.Stop();
-                }
-
-                //if(this.TodayStudyTime * 60 >= this.Course.TotalMinute)
-                //{
-                //    this.Complete = true;
-                //    Course.Complete = true;
-                //    this.Stop();
-                //}
-
-                //if(this.Course.StudyDuration - this.TodayStudyTime * 60 >= 60)
-                //{
-                //    this.Complete = true;
-                //    Course.Complete = true;
-                //    this.Stop();
-                //}
-
-                //学习时长增加而积分不增加时, 停止学习
-                if (this.StudyDuration / 120.0m - (this.StudyIntegral - this.InitIntegral) >= 1.0m)
-                {
-                    Course.Complete = true;
-                    this.Stop();
-                }
-
-                if (this.StudyIntegral == this.Appendix.MaxStudyIntegral)
-                {
-
-                    Course.Complete = true;
-                    this.Stop();
-                }
+                
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                fucker.Worker.ReportError(ex.Message);
-                this.Stop();
+                fucker.Worker.ReportError(ex.Message);                
             }
-
         }
+
+
+        public void Complete()
+        {
+            Status = StudyStatus.Completed;
+            StudyComplete?.Invoke(this);
+        }
+
+        public async System.Threading.Tasks.Task GetStudyInfo()
+        {
+            await fucker.GetStudyInfo(this);
+            await fucker.GetWareIntegral(this);
+            if(this.AllowIntegral == 0.0m)
+            {
+                this.Complete();
+            }
+            
+        }
+
+        private async System.Threading.Tasks.Task SaveStudyInfo()
+        {
+            await fucker.SaveStudyLog(this);
+        }
+
+        
     }
 }

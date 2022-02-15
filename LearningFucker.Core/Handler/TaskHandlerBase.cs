@@ -3,22 +3,41 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace LearningFucker.Handler
 {
     public abstract class TaskHandlerBase : ITaskHandler
     {
-        public virtual bool Start(Fucker fucker)
+        public async Task<bool> Start(Fucker fucker)
         {
-            this.Fucker = fucker;
-            if (TaskStatus != TaskStatus.Initial)
-                return false;
-            TaskStatus = TaskStatus.Working;
+            try
+            {
 
-            return true;
+                this.Fucker = fucker;
+                if (TaskStatus != TaskStatus.Initial)
+                    return false;
+                TaskStatus = TaskStatus.Working;
+
+                if (!await Start())
+                    return false;
+                else
+                {
+                    await DoWork();
+                    return true;
+                }
+            }
+            catch(Exception ex)
+            {
+                Fucker.Worker.ReportError(ex.Message);
+                return false;
+            }
+                
         }
 
-        public virtual bool Stop()
+        protected abstract Task<bool> Start();
+
+        protected virtual bool Stop()
         {
             if (TaskStatus != TaskStatus.Working)
                 return false;
@@ -27,7 +46,7 @@ namespace LearningFucker.Handler
             return true;
         }
 
-        public abstract void DoWork();
+        public abstract Task DoWork();
 
         protected virtual bool Complete()
         {
@@ -37,106 +56,29 @@ namespace LearningFucker.Handler
             return true;
         }
 
-        public TaskHandlerBase()
+        public TaskHandlerBase(CancellationToken token, Models.Task task)
         {
+            Task = task;
+            CancellationToken = token;
+            TaskStatus = TaskStatus.Initial;
         }
 
         private TaskStatus taskStatus;
-        private TaskForWork taskForWork;
         private Fucker fucker;
 
         public Action<object, TaskStatus> StatusChanged { get; set; }
-        public TaskForWork TaskForWork
-        {
-            get => taskForWork;
-            set { taskForWork = value; }
-        }
+
+        protected CancellationToken CancellationToken { get; set; }
+
 
         protected Fucker Fucker { get => fucker; set => fucker = value; }
 
         public TaskStatus TaskStatus { get => taskStatus; protected set { taskStatus = value; StatusChanged?.Invoke(this, value);  } }
-    }
 
-    public class TaskForWork
-    {
-        public TaskForWork(decimal limitIntegral, decimal Integral, LearningFucker.Models.Task task )
-        {
-            this.LimitIntegral = limitIntegral;
-            this.Integral = Integral;
-            this.Task = task;
-            TaskStatus = TaskStatus.Initial;
-        }
-
-        public TaskForWork(LearningFucker.Models.Task task) : this(0,0, task)
-        {
-
-        }
-
-        public TaskForWork(decimal limitIntegral, decimal Integral, LearningFucker.Models.Task task, ITaskHandler handler)
-            : this(limitIntegral, Integral, task)
-        {
-            SetHandler(handler);
-        }
-
-        public TaskForWork(LearningFucker.Models.Task task, ITaskHandler handler)
-            : this(task)
-        {
-            SetHandler(handler);
-        }
-
-        public int WorkId { get; set; }
         public decimal LimitIntegral { get; set; }
         public decimal Integral { get; set; }
-        public ITaskHandler Handler { get; internal set; }
-        public LearningFucker.Models.Task Task { get; }
 
-        public event Action<TaskForWork> OnCompleted;
-        public event Action<TaskForWork> OnStopped;
-
-        private TaskStatus taskStatus;
-        public TaskStatus TaskStatus { get=>taskStatus;
-            set {
-                taskStatus = value;
-                if (taskStatus == TaskStatus.Completed)
-                    OnCompleted?.Invoke(this);
-                if (taskStatus == TaskStatus.Stopped)
-                    OnStopped?.Invoke(this);
-            }
-            
-        }
-
-        public DateTime StartTime { get; internal set; }
-        public DateTime EndTime { get; internal set; }
-
-
-        public void SetHandler(ITaskHandler handler)
-        {
-            Handler = handler;
-            ((TaskHandlerBase)Handler).TaskForWork = this;
-
-            handler.StatusChanged += new Action<object, TaskStatus>(( s, status) =>
-            {
-                this.TaskStatus = status;
-                if(TaskStatus == TaskStatus.Working)
-                {
-                    this.StartTime = DateTime.Now;
-                }
-                else if(TaskStatus == TaskStatus.Completed )
-                {
-                    this.EndTime = DateTime.Now;
-                }
-            });
-        }
-
-        public bool Start(Fucker fucker)
-        {
-            return Handler.Start(fucker);
-        }
-
-        public bool Stop()
-        {
-            return Handler.Stop();
-        }
+        public LearningFucker.Models.Task Task { get; set; }
     }
 
     public enum TaskStatus

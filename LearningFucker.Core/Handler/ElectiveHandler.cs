@@ -5,107 +5,87 @@ using System.Text;
 using System.Threading.Tasks;
 using LearningFucker.Models;
 using System.Diagnostics;
+using System.Threading;
+using Serilog;
 
 namespace LearningFucker.Handler
 {
     public class ElectiveHandler : TaskHandlerBase
     {
-        public ElectiveHandler()
+        public ElectiveHandler(ElectiveCourseList courseList, CancellationToken token, Models.Task task)
+            :base(token, task)
         {
-            timer = new System.Timers.Timer();
-            timer.Interval = 10000;
-            timer.AutoReset = true;
-            timer.Elapsed += Timer_Elapsed;
+            this.courseList = courseList;
+            cancel = new CancellationTokenSource();
         }
+
 
         private Models.ElectiveCourseList courseList;
-        private PropertyList propertyList;
-        private List<Models.Study> studies;
         private System.Timers.Timer timer;
+        private Service.StudyService studyService;
+        private CancellationTokenSource cancel;
 
-        public List<Study> Studies { get => studies; }
 
-        public async override void DoWork()
+        public async override System.Threading.Tasks.Task DoWork()
         {
             try
             {
-                Random random = new Random();
-                int id = random.Next(0, propertyList.List[0].SubNodes.Count - 1);
-
-                var context = propertyList.List[0].SubNodes[id];
-
-                courseList = await Fucker.GetElectiveCourseList(context);
-
-                DoContext();
-            }
-            catch(Exception ex)
-            {
-                Fucker.Worker.ReportError(ex.Message);
-                Stop();
-            }
-        }
-
-        private async void DoContext()
-        {
-            try
-            {
-                Random random = new Random();
-                int id = random.Next(0, courseList.List.Count - 1);                
-
-                if (courseList.List[id].Detail != null && courseList.List[id].Detail.Complete)      //可能会死循环
+                while(true)
                 {
-                    System.Threading.Thread.Sleep(100);
-                    DoContext();
-                    return;
-                }
-
-                var course = courseList.List[id];
-
-                await Fucker.GetCourseDetail(course);
-                await Fucker.GetCourseAppendix(course);
-
-                if (course.Detail.WareList != null && course.Detail.WareList.Count > 0)
-                    DoStudy(course, course.Detail.WareList[0]);
-                else
-                    DoContext();
-            }
-            catch(Exception ex)
-            {
-                Fucker.Worker.ReportError(ex.Message);
-                Stop();
-            }
-        }
-
-        private async void DoStudy(ElectiveCourse course, WareDetail item)
-        {
-            try
-            {
-                var study = await Fucker.StartStudy(course, item);
-                if (Studies == null)
-                    studies = new List<Study>();
-
-                if (await Fucker.GetStudyInfo(study))
-                    study.InitIntegral = study.StudyIntegral;
-
-                Studies.Add(study);
-
-                study.Start(Fucker);
-                study.StudyComplete = new Action<Study>(s =>
-                {
-                    if (this.TaskStatus == TaskStatus.Working)
+                    if (CancellationToken.IsCancellationRequested)
                     {
-                        var index = course.Detail.WareList.IndexOf(item);
-                        if (index == course.Detail.WareList.Count - 1)
-                            DoContext();
-                        else
-                        {
-                            index++;
-                            DoStudy(course, course.Detail.WareList[index]);
-                        }
+                        Log.Debug("必修课程学习已结束！");
+                        this.Stop();
+                        return;
                     }
-                });
+                    if(cancel.IsCancellationRequested)
+                    {
+                        Log.Debug("必修课程学习已结束！");
+                        this.Complete();
+                        return;
+                    }
+
+                    if(courseList.List.All(s=>s.Detail?.Complete == true))
+                    {
+
+                        //所有课程都已完成学习, 即使学分没拿满, 也无法再进行学习
+                        Log.Warning("All courses completed, no new learning possible. ");
+                        Complete();
+                        return;
+                    }
+
+                    Log.Information("Randomly choose a course to study.");
+                    Random random = new Random();
+                    int id = random.Next(0, courseList.Count);
+                    if(courseList.List[id].Detail?.Complete == true)
+                    {
+                        await System.Threading.Tasks.Task.Delay(100);
+                        continue;
+                    }
+
+                    var course = courseList.List[id];
+                    Log.Information($"Preparing for course: {course.ID}");
+                    Log.Debug($"Course Information: {course}");
+
+                    await DoStudy(course);
+                }
+                
             }
-            catch(Exception ex)
+            catch (Exception ex)
+            {
+                Fucker.Worker.ReportError(ex.Message);
+                Stop();
+            }
+        }
+
+
+        private async System.Threading.Tasks.Task DoStudy(ElectiveCourse course)
+        {
+            try
+            {
+                await studyService.Start(course);
+            }
+            catch (Exception ex)
             {
                 Fucker.Worker.ReportError(ex.Message);
                 Stop();
@@ -114,106 +94,51 @@ namespace LearningFucker.Handler
 
         private async void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            try
-            {
-                var study = Studies.FirstOrDefault(s => s.Complete == false);
-                if (study == null)
-                    Stop();
-                else
-                {
-                    await Fucker.GetStudyInfo(study);
-                    this.TaskForWork.Integral = study.StudyIntegral;
+            await new Service.CourseService(Fucker).GetIntegralInfo(courseList.List[0]);
 
-                    if (this.TaskForWork.LimitIntegral == this.TaskForWork.Integral)  //学习任务结束
-                    {
-                        Complete();
-                    }
-                }
-            }
-            catch(Exception ex)
-            {
-                Fucker.Worker.ReportError(ex.Message);
-                Stop();
-            }
+            if (courseList.List[0].SumIntegral >= this.LimitIntegral)
+                this.Complete();
         }
 
-        public override bool Start(Fucker fucker)
-        {
-            if (!base.Start(fucker)) return false;
 
-            Start();
+        protected override async Task<bool> Start()
+        {
+            var courseService = new Service.CourseService(Fucker);
+            studyService = new Service.StudyService(Fucker, courseService, cancel.Token);
+
+            timer = new System.Timers.Timer();
+            timer.Interval = 10000;
+            timer.AutoReset = true;
+            timer.Elapsed += Timer_Elapsed;
+
+            await Fucker.GetCourseAppendix(courseList.List[0]);
+            await courseService.GetIntegralInfo(courseList.List[0]);
+
+            this.LimitIntegral = courseList.List[0].MaxIntegral;
+            if (courseList.List[0].SumIntegral >= this.LimitIntegral)
+                this.Complete();
+
+            timer.Start();
             return true;
         }
 
 
-        private async void Start()
+        protected override bool Stop()
         {
-            try
-            {
-                var propertyList = await Fucker.GetPropertyList();
+            base.Stop();
+            cancel.Cancel();
+            timer?.Stop();
+            return true;
 
-                this.propertyList = propertyList;
-
-                var courselist = await Fucker.GetElectiveCourseList(propertyList.List[0].SubNodes[0]);
-
-
-                await Fucker.GetCourseAppendix(courselist.List[0]);
-
-                this.TaskForWork.LimitIntegral = courselist.List[0].Appendix.MaxStudyIntegral;
-                timer.Start();
-                DoWork();
-            }
-            catch(Exception ex)
-            {
-                Fucker.Worker.ReportError(ex.Message);
-                Stop();
-            }
-        }
-
-        public override bool Stop()
-        {
-            if (base.Stop())
-            {
-                if (Studies != null)
-                {
-                    foreach (var item in Studies.Where(s => s.Complete == false))
-                    {
-                        item.Stop();
-                    }
-                }
-
-                if (timer.Enabled)
-                    timer.Stop();
-
-                TaskStatus = TaskStatus.Stopped;
-                TaskForWork.TaskStatus = TaskStatus.Stopped;
-                return true;
-            }
-            else
-                return false;
-            
         }
 
         protected override bool Complete()
         {
-            if (base.Complete())
-            {
-                if (Studies != null)
-                {
-                    foreach (var item in Studies.Where(s => s.Complete == false))
-                    {
-                        item.Stop();
-                    }
-                }
-
-                if (timer.Enabled)
-                    timer.Stop();
-
- 
-                return true;
-            }
-            else
-                return false;
+            base.Complete();
+            cancel.Cancel();
+            timer?.Stop();
+            return true;
         }
+
     }
 }

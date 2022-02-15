@@ -130,6 +130,8 @@ namespace LearningFucker.Models
         /// </summary>
         public decimal PKScroe { get; set; }
 
+        public string RecrodID { get; set; }
+
         /// <summary>
         /// 是否取胜(0取胜, 1失败)
         /// </summary>

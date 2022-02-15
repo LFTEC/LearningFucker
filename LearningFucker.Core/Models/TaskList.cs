@@ -13,6 +13,8 @@ namespace LearningFucker.Models
         public int Count { get; set; }
         [JsonProperty(PropertyName = "list")]
         public List<Task> List { get; set; }
+
+        public static int[] AvailableTasks = new int[] { 14, 2, 7, 11, 13 };
     }
 
     public class Task
