@@ -37,7 +37,7 @@ namespace LearningFucker.Console
 
                 dealer.InitConfig();
 
-                Parser.Default.ParseArguments<AddUser, List, Study>(args)
+                Parser.Default.ParseArguments<AddUser, List, Study, Learn>(args)
                     .WithParsed<AddUser>(options =>
                     {
                         var userId = options.UserName;
@@ -75,14 +75,14 @@ namespace LearningFucker.Console
                     {
 
                     })
-                    .WithParsed<List>(options =>
+                    .WithParsed<List>(async options =>
                     {
                         if (JobList == null) GetJobList().Wait();
                         if (JobList == null)
                             return;
 
                         if (options.UserStatus)  //显示用户信息
-                    {
+                        {
                             foreach (var job in JobList)
                             {
                                 job.GetStatus().Wait();
@@ -97,7 +97,7 @@ namespace LearningFucker.Console
                             }
                         }
                         else if (options.Tasks)  //显示用户任务清单
-                    {
+                        {
                             foreach (var job in JobList)
                             {
                                 System.Console.WriteLine($"user {job.Worker.User.RealName}({job.Worker.User.UserName}), dept {job.Worker.User.CompanyName}\r\nTasks:\r\n");
@@ -112,6 +112,25 @@ namespace LearningFucker.Console
 
                                 System.Console.WriteLine();
 
+                            }
+                        }
+                        else if (options.Courses) //显示必修课程清单
+                        {
+                            if (JobList.Count == 0)
+                                System.Console.WriteLine("Need an user.");
+                            else
+                            {
+                                var job = JobList[0];
+                                var table = new ConsoleTable("course id", "name");
+                                
+                                var courses = await job.Worker.GetCourseList();
+                                foreach (var course in courses)
+                                {
+                                    table.AddRow(course.Item1, course.Item2);
+                                }
+                                table.Write(Format.Minimal);
+
+                                System.Console.WriteLine();
                             }
                         }
                     })
@@ -152,6 +171,21 @@ namespace LearningFucker.Console
                         BuildStudyTable();
                         Task.WaitAll(tasks.ToArray());
                     })
+                    .WithParsed<Learn>(options =>
+                    {
+                        GetJobList().Wait();
+                        if (JobList == null) return;
+
+                        foreach (var job in JobList)
+                        {
+                            var task = job.Worker.StartCourse(options.Course);
+                            List<Task> tasks = new List<Task>();
+                            tasks.Add(task);
+                            //task.Start();
+
+                            Task.WaitAll(tasks.ToArray());
+                        }
+                    })
                     .WithNotParsed(error =>
                     {
                         error.ToList();
@@ -166,6 +200,8 @@ namespace LearningFucker.Console
                 Log.CloseAndFlush();
             }
         }
+
+
 
         static void BuildStudyTable()
         {
@@ -274,7 +310,7 @@ namespace LearningFucker.Console
         [Option('p', "password", HelpText = "password", Required = true)]
         public string Password { get; set; }
     }
-
+     
     [Verb("removeuser", HelpText = "remove user")]
     class RemoveUser
     {
@@ -289,6 +325,11 @@ namespace LearningFucker.Console
 
         [Option("users", HelpText = "list user Information", SetName = "user", Required = true)]
         public bool UserStatus { get; set; }
+
+        [Option("courses", HelpText = "course Information", SetName = "course", Required = true)]
+        public bool Courses { get; set; }
+
+
     }
 
     [Verb("study", HelpText = "start study")]
@@ -299,6 +340,13 @@ namespace LearningFucker.Console
 
         [Option("tasks", Separator = ';', HelpText = "tasks which you want to learn", SetName = "task")]
         public IEnumerable<int> Tasks { get; set; }
+    }
+
+    [Verb("learn", HelpText = "Learn specific course.")]
+    class Learn
+    {
+        [Option('c', "course", HelpText = "course id", Required = true)]
+        public string Course { get; set; }
     }
 
     public class Settings

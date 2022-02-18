@@ -218,6 +218,30 @@ namespace LearningFucker
             
         }
 
+        public async System.Threading.Tasks.Task StartCourse(string courseId)
+        {
+            if (string.IsNullOrEmpty(courseId))
+                return;
+
+            this.Say("开始完成必修课程的学习...");
+
+            var courseService = new Service.CourseService(Fucker);
+            var courseList = await courseService.GetCourseList();
+            var course = courseList.List.Single(s=>s.ProjID == courseId);
+            if (course == null) return;
+
+            var studyService = new Service.StudyService(Fucker, courseService, cancellation.Token);
+            await studyService.Start(course);
+            await studyService.Exam(course);
+        }
+
+        public async System.Threading.Tasks.Task<IEnumerable<(string,string)>> GetCourseList()
+        {
+            var courseService = new Service.CourseService(Fucker);
+            var courseList = await courseService.GetCourseList();
+            return courseList.List.Select(s=> (s.ProjID, s.ProjName));
+        }
+
         private void LaunchWorkList(List<int> tasks)
         {
             WorkList.Clear();

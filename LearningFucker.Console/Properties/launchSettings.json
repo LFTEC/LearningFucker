@@ -2,7 +2,7 @@
   "profiles": {
     "LearningFucker.Console": {
       "commandName": "Project",
-      "commandLineArgs": "adduser -u 00007291 -p Cyl@2020"
+      "commandLineArgs": "learn --course 00309b4f-2d84-42f1-8348-7c13c10ce866"
     }
   }
 }
