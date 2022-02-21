@@ -120,17 +120,23 @@ namespace LearningFucker.Console
                                 System.Console.WriteLine("Need an user.");
                             else
                             {
-                                var job = JobList[0];
-                                var table = new ConsoleTable("course id", "name");
-                                
-                                var courses = await job.Worker.GetCourseList();
-                                foreach (var course in courses)
-                                {
-                                    table.AddRow(course.Item1, course.Item2);
-                                }
-                                table.Write(Format.Minimal);
 
-                                System.Console.WriteLine();
+                                foreach (var job in JobList)
+                                {
+                                    var table = new ConsoleTable("course id", "name");
+                                    System.Console.WriteLine($"user {job.Worker.User.RealName}({job.Worker.User.UserName}), dept {job.Worker.User.CompanyName}\r\nCourses:");
+
+                                    var courses = await job.Worker.GetCourseList();
+                                    System.Console.WriteLine("Count of course: " + courses.Count().ToString());
+
+                                    foreach (var course in courses)
+                                    {
+                                        table.AddRow(course.Item1, course.Item2);
+                                    }
+                                    table.Write(Format.Minimal);
+
+                                    System.Console.WriteLine();
+                                }                           
                             }
                         }
                     })
@@ -191,9 +197,9 @@ namespace LearningFucker.Console
                         error.ToList();
                     });
             }
-            catch(Exception)
+            catch(Exception ex)
             {
-
+                System.Console.Write(ex.ToString());
             }
             finally
             {

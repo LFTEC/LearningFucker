@@ -227,7 +227,7 @@ namespace LearningFucker
 
             var courseService = new Service.CourseService(Fucker);
             var courseList = await courseService.GetCourseList();
-            var course = courseList.List.Single(s=>s.ProjID == courseId);
+            var course = courseList.List.SingleOrDefault(s=>s.ProjID == courseId);
             if (course == null) return;
 
             var studyService = new Service.StudyService(Fucker, courseService, cancellation.Token);
