@@ -126,7 +126,7 @@ namespace LearningFucker.Console
                                     var table = new ConsoleTable("course id", "name");
                                     System.Console.WriteLine($"user {job.Worker.User.RealName}({job.Worker.User.UserName}), dept {job.Worker.User.CompanyName}\r\nCourses:");
 
-                                    var courses = await job.Worker.GetCourseList();
+                                    var courses = job.Worker.GetCourseList().Result;
                                     System.Console.WriteLine("Count of course: " + courses.Count().ToString());
 
                                     foreach (var course in courses)
@@ -182,15 +182,15 @@ namespace LearningFucker.Console
                         GetJobList().Wait();
                         if (JobList == null) return;
 
+                        List<Task> tasks = new List<Task>();
                         foreach (var job in JobList)
                         {
-                            var task = job.Worker.StartCourse(options.Course);
-                            List<Task> tasks = new List<Task>();
+                            var task = job.Worker.StartCourse(options.Course);                            
                             tasks.Add(task);
-                            //task.Start();
-
-                            Task.WaitAll(tasks.ToArray());
+                            //task.Start();                            
                         }
+
+                        Task.WaitAll(tasks.ToArray());
                     })
                     .WithNotParsed(error =>
                     {
