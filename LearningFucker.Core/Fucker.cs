@@ -596,7 +596,7 @@ namespace LearningFucker
             while(i++ < 3)
             {
                 tmpResult = await Post<dynamic>("Api/PointAnswer/GetPointAnswerResult", GetContent(valuePairs));
-                if (tmpResult.result.Status == "End")
+                if (tmpResult.Status == "End")
                     break;
             }
             

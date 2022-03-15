@@ -114,12 +114,16 @@ namespace LearningFucker.Models
                     }
 
                     await this.SaveStudyInfo();
+
+
                     await System.Threading.Tasks.Task.Delay(Fucker.POLLING_TIME);
                     await this.GetStudyInfo();
                     if (this.Status == StudyStatus.Completed)
                         return;
                     if (this.Status == StudyStatus.Stop)
                         return;
+
+                    
                     
                     AddStudyDuration(Fucker.POLLING_TIME / 1000);
                 }

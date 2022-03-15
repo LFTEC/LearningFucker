@@ -60,7 +60,10 @@ namespace LearningFucker.Service
                 }
 
                 if (course.Detail.WareList.All(s => s.Complete))
+                {
                     course.Status = StudyStatus.Completed;
+                    course.Detail.Complete = true;
+                }
             }
             catch(Exception ex)
             {

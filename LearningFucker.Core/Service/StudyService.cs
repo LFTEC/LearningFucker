@@ -227,9 +227,14 @@ namespace LearningFucker.Service
                 {
                     foreach (var item in result.Questions)
                     {
-                        if (await dataContext.GetRow(item.TmID) == null)
+                        var row = await dataContext.GetRow(item.TmID);
+                        if (row == null)
                         {
                             await dataContext.InsertRow(item);
+                        }
+                        else if (row.Answers != item.Answers)
+                        {
+                            await dataContext.UpdateRow(item);
                         }
                     }
                 }
@@ -249,9 +254,14 @@ namespace LearningFucker.Service
                 {
                     foreach (var item in result.Questions)
                     {
-                        if (await dataContext.GetRow(item.TmID) == null)
+                        var row = await dataContext.GetRow(item.TmID);
+                        if (row == null)
                         {
                             await dataContext.InsertRow(item);
+                        }
+                        else if (row.Answers != item.Answers)
+                        {
+                            await dataContext.UpdateRow(item);
                         }
                     }
                 }

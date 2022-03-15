@@ -100,5 +100,51 @@ namespace LearningFucker
             }
 
         }
+
+        public async Task<bool> UpdateRow(Question question)
+        {
+
+            using (MySqlConnection connection = new MySqlConnection("Data Source=server.jcdev.cc;Port=5106;database=learning;Uid=user;Pwd=LearningFucker2020;"))
+            {
+                string sql;
+                sql = @"update tm set tkid=@2,type=@3,tmtx=@4,txtext=@5,txstr=@6,title=@7,tmkey=@8,options=@9,answers=@10,difficulty=@11,
+                        remark=@12,score=@13 where tmid=@1;";
+                MySqlCommand command = new MySqlCommand(sql, connection);
+                MySqlParameter parameter = new MySqlParameter("@1", question.TmID);
+                command.Parameters.Add(parameter);
+                parameter = new MySqlParameter("@2", question.TkID);
+                command.Parameters.Add(parameter);
+                parameter = new MySqlParameter("@3", question.TmSourceType);
+                command.Parameters.Add(parameter);
+                parameter = new MySqlParameter("@4", question.TmTx);
+                command.Parameters.Add(parameter);
+                parameter = new MySqlParameter("@5", question.TmBaseTx);
+                command.Parameters.Add(parameter);
+                parameter = new MySqlParameter("@6", question.TmTxStr);
+                command.Parameters.Add(parameter);
+                parameter = new MySqlParameter("@7", question.Title);
+                command.Parameters.Add(parameter);
+                parameter = new MySqlParameter("@8", question.TmKey);
+                command.Parameters.Add(parameter);
+                parameter = new MySqlParameter("@9", question.Options);
+                command.Parameters.Add(parameter);
+                parameter = new MySqlParameter("@10", question.Answers);
+                command.Parameters.Add(parameter);
+                parameter = new MySqlParameter("@11", question.Difficulty);
+                command.Parameters.Add(parameter);
+                parameter = new MySqlParameter("@12", question.Remark);
+                command.Parameters.Add(parameter);
+                parameter = new MySqlParameter("@13", question.Score);
+                command.Parameters.Add(parameter);
+                command.CommandType = System.Data.CommandType.Text;
+                command.CommandTimeout = 10;
+                await connection.OpenAsync();
+
+                var result = await command.ExecuteNonQueryAsync();
+                connection.Close();
+                return result == 0 ? true : false;
+            }
+
+        }
     }
 }

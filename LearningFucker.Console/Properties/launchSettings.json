@@ -2,7 +2,7 @@
   "profiles": {
     "LearningFucker.Console": {
       "commandName": "Project",
-      "commandLineArgs": "list --courses"
+      "commandLineArgs": "study --tasks=7;11;13"
     }
   }
 }
