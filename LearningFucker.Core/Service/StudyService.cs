@@ -166,8 +166,14 @@ namespace LearningFucker.Service
             {
                 DataContext dataContext = new DataContext();
                 List<Answer> answers = new List<Answer>();
+                int allowCount = (int)(exam.ExamDetail.MaxExamCount * 0.8);
+                int testedCount = exam.ExamDetail.JoinCount;
                 while (true)
                 {
+                    testedCount++;
+                    if (testedCount > allowCount)
+                        throw new Exception($"用户{fucker.Worker.User.RealName}的考试{exam.ExamName}已达次数上限且仍未通过，请手动答题。");
+
                     if (!await fucker.StartExam(exam))
                         return 0;
 
@@ -191,6 +197,7 @@ namespace LearningFucker.Service
                         {
                             answer.AnswerContent = question.Answers.Replace(";", ",");
                         }
+                        await System.Threading.Tasks.Task.Delay(1000);
                     }
 
                     if (!await fucker.HandIn(paper, exam, answers))
@@ -227,9 +234,14 @@ namespace LearningFucker.Service
                 {
                     foreach (var item in result.Questions)
                     {
-                        if (await dataContext.GetRow(item.TmID) == null)
+                        var row = await dataContext.GetRow(item.TmID);
+                        if (row == null)
                         {
                             await dataContext.InsertRow(item);
+                        }
+                        else if (row.Answers != item.Answers)
+                        {
+                            await dataContext.UpdateRow(item);
                         }
                     }
                 }
@@ -249,9 +261,14 @@ namespace LearningFucker.Service
                 {
                     foreach (var item in result.Questions)
                     {
-                        if (await dataContext.GetRow(item.TmID) == null)
+                        var row = await dataContext.GetRow(item.TmID);
+                        if (row == null)
                         {
                             await dataContext.InsertRow(item);
+                        }
+                        else if (row.Answers != item.Answers)
+                        {
+                            await dataContext.UpdateRow(item);
                         }
                     }
                 }

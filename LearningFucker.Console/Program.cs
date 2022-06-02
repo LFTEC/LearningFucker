@@ -270,6 +270,10 @@ namespace LearningFucker.Console
             this.user = user;
             this.password = password;
             Worker = new Worker();
+            Worker.OnReportingError += (sender, e) =>
+            {
+                System.Console.WriteLine(e);
+            };
         }
 
 

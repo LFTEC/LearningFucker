@@ -155,8 +155,9 @@ namespace LearningFucker
         /// <returns></returns>
         public async Task<CourseList> GetCourseList()
         {
-            
-            var list = await Post<CourseList>("Api/TaskStudy/GetList", null);
+            Dictionary<string,string> valuePairs = new Dictionary<string,string>();
+            valuePairs.Add("pageSize", "500");
+            var list = await Post<CourseList>("Api/TaskStudy/GetList", GetContent(valuePairs));
             if(list != null && list.List != null)
             {
                 foreach (var item in list.List)
@@ -178,7 +179,7 @@ namespace LearningFucker
             course.Detail = JsonConvert.DeserializeObject<CourseDetail>(JsonConvert.SerializeObject(detail));
             for (int i = 0; i < course.Detail.WareList.Count; i++)
             {
-                course.Detail.WareList[i].AllowIntegral = detail.WareList[0].ProjInfo.AllowIntegral;
+                course.Detail.WareList[i].AllowIntegral = detail.WareList[i].ProjInfo.AllowIntegral;
             }
         }
 
@@ -596,7 +597,7 @@ namespace LearningFucker
             while(i++ < 3)
             {
                 tmpResult = await Post<dynamic>("Api/PointAnswer/GetPointAnswerResult", GetContent(valuePairs));
-                if (tmpResult.result.Status == "End")
+                if (tmpResult.Status == "End")
                     break;
             }
             

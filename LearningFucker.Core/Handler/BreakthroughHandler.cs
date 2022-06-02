@@ -21,7 +21,7 @@ namespace LearningFucker.Handler
         protected override async Task<bool> Start()
         {
             this.LimitIntegral = this.Task.LimitIntegral;
-            this.Integral = this.Integral;
+            this.Integral = this.Task.Integral;
 
 
             breakthroughList = await Fucker.GetBreakthroughList();
@@ -47,7 +47,7 @@ namespace LearningFucker.Handler
                 {
                     breakthroughList = await Fucker.GetBreakthroughList();
 
-                    if(!breakthroughList.List.Any(s=>s.CanJoin))
+                    if(breakthroughList == null || !breakthroughList.List.Any(s=>s.CanJoin))
                     {
                         Stop();
                         break;
@@ -59,8 +59,10 @@ namespace LearningFucker.Handler
                         return;
                     }
 
-                    foreach (var item in breakthroughList.List.Where(s=>s.CanJoin))
-                    {   
+                    var item = breakthroughList.List.First(s=>s.CanJoin);
+
+                    while(true)
+                    {
                         answers = new List<ExerciseAnswer>();
                         await Fucker.StartBreakthrough(item);
                         foreach (var question in item.Questions)
@@ -75,12 +77,18 @@ namespace LearningFucker.Handler
 
                         this.Integral += item.Result.Integral;
 
-                        if (this.LimitIntegral <= this.Integral)
-                        {
-                            this.Complete();
-                            return;
-                        }
+                        if (item.Result.IsPass == 1)
+                            break;
+
+                            
                     }
+
+                    if (this.LimitIntegral <= this.Integral)
+                    {
+                        this.Complete();
+                        return;
+                    }
+
                 }               
 
             }
@@ -107,9 +115,14 @@ namespace LearningFucker.Handler
                 {
                     foreach (var item in result.Questions)
                     {
-                        if (await dataContext.GetRow(item.TmID) == null)
+                        var row = await dataContext.GetRow(item.TmID);
+                        if (row == null)
                         {
                             await dataContext.InsertRow(item);
+                        }
+                        else if (row.Answers != item.Answers)
+                        {
+                            await dataContext.UpdateRow(item);
                         }
                     }
                 }

@@ -37,21 +37,21 @@ namespace LearningFucker.Handler
 
                 DataContext dataContext = new DataContext();
 
+                var practiceList = await Fucker.GetWeeklyPracticeList();
+                var list = practiceList?.list[0];
+                var week = list?.WeekList?.FirstOrDefault(s => s.State == "Doing");
+                if (week == null)
+                {
+                    return;
+                }
+
                 while (true)
                 {
                     if(CancellationToken.IsCancellationRequested)
                     {
                         this.Stop();
                         return;
-                    }
-
-                    var practiceList = await Fucker.GetWeeklyPracticeList();
-                    var list = practiceList?.list[0];
-                    var week = list?.WeekList?.FirstOrDefault(s => s.State == "Doing");
-                    if(week == null)
-                    {
-                        continue;
-                    }
+                    }                    
 
                     List<ExerciseAnswer> answers = new List<ExerciseAnswer>();
                     var practiceQuestionList = await Fucker.StartWeeklyPractice(week);
@@ -61,8 +61,8 @@ namespace LearningFucker.Handler
                         answers.Add(new ExerciseAnswer() { TmID = question.TmID, AnswerContent = item == null? "A": item.Answers.Replace(";", ",") });
                     }
                     await Fucker.HandIn(practiceQuestionList, answers, 15, week);
+                    await System.Threading.Tasks.Task.Delay(1000);
                     await Fucker.GetResult(practiceQuestionList.Result);
-                    await Fucker.ReviewResult(practiceQuestionList.Result);
                     await UpdateQuestionBank(practiceQuestionList.Result);
 
                     this.Integral += practiceQuestionList.Result.Integration;
@@ -77,13 +77,13 @@ namespace LearningFucker.Handler
             catch (TransportException ex)
             {
                 Fucker.Worker.ReportError(ex.Message);
-                Fucker.Worker.Say("每日一练答题失败!");
+                Fucker.Worker.Say("每周一练答题失败!");
                 Stop();
             }
             catch (Exception ex)
             {
                 Fucker.Worker.ReportError(ex.Message);
-                Fucker.Worker.Say("每日一练答题失败!");
+                Fucker.Worker.Say("每周一练答题失败!");
                 Stop();
             }
         }
@@ -94,11 +94,20 @@ namespace LearningFucker.Handler
             {
                 DataContext dataContext = new DataContext();
 
-                foreach (var item in result.Questions)
+                if (await Fucker.ReviewResult(result))
                 {
-                    if (await dataContext.GetRow(item.TmID) == null)
+                    foreach (var item in result.Questions)
                     {
-                        await dataContext.InsertRow(item);
+                        var row = await dataContext.GetRow(item.TmID);
+                        if (row == null)
+                        {
+                            await dataContext.InsertRow(item);
+                        }
+                        else if(row.Answers != item.Answers)
+                        {
+                            await dataContext.UpdateRow(item);
+                        }
+                        
                     }
                 }
             }
