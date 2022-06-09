@@ -3,21 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MySql.Data.MySqlClient;
+using System.Data.SqlClient;
 using LearningFucker.Models;
 namespace LearningFucker
 {
     public class DataContext
     {
 
+        private static Object write_lock = new object();
+
         public async Task<Question> GetRow(int tmid)
         {
 
             Question question = new Question();
-            using (MySqlConnection connection = new MySqlConnection("Data Source=server.jcdev.cc;Port=5106;database=learning;Uid=user;Pwd=LearningFucker2020;"))
+            using(SqlConnection connection = new SqlConnection("Data Source=localhost;database=learning;Uid=user;Pwd=LearningFucker2020;"))
             {
-                MySqlCommand command = new MySqlCommand("select * from tm where tmid = @tmid;", connection);
-                MySqlParameter parameter = new MySqlParameter("tmid", tmid);
+                SqlCommand command = new SqlCommand("select * from tm where tmid = @tmid;", connection);
+                SqlParameter parameter = new SqlParameter("tmid", tmid);
                 command.Parameters.Add(parameter);
                 command.CommandType = System.Data.CommandType.Text;
                 command.CommandTimeout = 10;
@@ -59,36 +61,81 @@ namespace LearningFucker
         public async Task<bool> InsertRow(Question question)
         {
 
-            using (MySqlConnection connection = new MySqlConnection("Data Source=server.jcdev.cc;Port=5106;database=learning;Uid=user;Pwd=LearningFucker2020;"))
+            using (SqlConnection connection = new SqlConnection("Data Source=localhost;database=learning;Uid=user;Pwd=LearningFucker2020;"))
             {
                 string sql;
                 sql = @"insert tm values(@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13);";
-                MySqlCommand command = new MySqlCommand(sql, connection);
-                MySqlParameter parameter = new MySqlParameter("@1", question.TmID);
+                SqlCommand command = new SqlCommand(sql, connection);
+                SqlParameter parameter = new SqlParameter("@1", question.TmID);
                 command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@2", question.TkID);
+                parameter = new SqlParameter("@2", question.TkID);
                 command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@3", question.TmSourceType);
+                parameter = new SqlParameter("@3", question.TmSourceType);
                 command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@4", question.TmTx);
+                parameter = new SqlParameter("@4", question.TmTx);
                 command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@5", question.TmBaseTx);
+                parameter = new SqlParameter("@5", question.TmBaseTx);
                 command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@6", question.TmTxStr);
+                parameter = new SqlParameter("@6", question.TmTxStr);
                 command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@7", question.Title);
+                parameter = new SqlParameter("@7", question.Title);
                 command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@8", question.TmKey);
+                parameter = new SqlParameter("@8", question.TmKey);
                 command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@9", question.Options);
+                parameter = new SqlParameter("@9", question.Options);
                 command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@10", question.Answers);
+                parameter = new SqlParameter("@10", question.Answers);
                 command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@11", question.Difficulty);
+                parameter = new SqlParameter("@11", question.Difficulty);
                 command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@12", question.Remark);
+                parameter = new SqlParameter("@12", question.Remark);
                 command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@13", question.Score);
+                parameter = new SqlParameter("@13", question.Score);
+                command.Parameters.Add(parameter);
+                command.CommandType = System.Data.CommandType.Text;
+                command.CommandTimeout = 10;
+                await connection.OpenAsync();
+                var result = await command.ExecuteNonQueryAsync();
+                connection.Close();
+                return result == 0 ? true : false;
+            }
+
+        }
+
+        public async Task<bool> UpdateRow(Question question)
+        {
+
+            using (SqlConnection connection = new SqlConnection("Data Source=localhost;database=learning;Uid=user;Pwd=LearningFucker2020;"))
+            {
+                string sql;
+                sql = @"update tm set tkid=@2,type=@3,tmtx=@4,txtext=@5,txstr=@6,title=@7,tmkey=@8,options=@9,answers=@10,difficulty=@11,
+                        remark=@12,score=@13 where tmid=@1;";
+                SqlCommand command = new SqlCommand(sql, connection);
+                SqlParameter parameter = new SqlParameter("@1", question.TmID);
+                command.Parameters.Add(parameter);
+                parameter = new SqlParameter("@2", question.TkID);
+                command.Parameters.Add(parameter);
+                parameter = new SqlParameter("@3", question.TmSourceType);
+                command.Parameters.Add(parameter);
+                parameter = new SqlParameter("@4", question.TmTx);
+                command.Parameters.Add(parameter);
+                parameter = new SqlParameter("@5", question.TmBaseTx);
+                command.Parameters.Add(parameter);
+                parameter = new SqlParameter("@6", question.TmTxStr);
+                command.Parameters.Add(parameter);
+                parameter = new SqlParameter("@7", question.Title);
+                command.Parameters.Add(parameter);
+                parameter = new SqlParameter("@8", question.TmKey);
+                command.Parameters.Add(parameter);
+                parameter = new SqlParameter("@9", question.Options);
+                command.Parameters.Add(parameter);
+                parameter = new SqlParameter("@10", question.Answers);
+                command.Parameters.Add(parameter);
+                parameter = new SqlParameter("@11", question.Difficulty);
+                command.Parameters.Add(parameter);
+                parameter = new SqlParameter("@12", question.Remark);
+                command.Parameters.Add(parameter);
+                parameter = new SqlParameter("@13", question.Score);
                 command.Parameters.Add(parameter);
                 command.CommandType = System.Data.CommandType.Text;
                 command.CommandTimeout = 10;
@@ -101,50 +148,21 @@ namespace LearningFucker
 
         }
 
-        public async Task<bool> UpdateRow(Question question)
+        public async Task<bool> WriteData(Question? item)
         {
-
-            using (MySqlConnection connection = new MySqlConnection("Data Source=server.jcdev.cc;Port=5106;database=learning;Uid=user;Pwd=LearningFucker2020;"))
+            if (item == null) return false;
+            var row = await GetRow(item.TmID);
+            bool result = false;
+            if (row == null)
             {
-                string sql;
-                sql = @"update tm set tkid=@2,type=@3,tmtx=@4,txtext=@5,txstr=@6,title=@7,tmkey=@8,options=@9,answers=@10,difficulty=@11,
-                        remark=@12,score=@13 where tmid=@1;";
-                MySqlCommand command = new MySqlCommand(sql, connection);
-                MySqlParameter parameter = new MySqlParameter("@1", question.TmID);
-                command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@2", question.TkID);
-                command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@3", question.TmSourceType);
-                command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@4", question.TmTx);
-                command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@5", question.TmBaseTx);
-                command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@6", question.TmTxStr);
-                command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@7", question.Title);
-                command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@8", question.TmKey);
-                command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@9", question.Options);
-                command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@10", question.Answers);
-                command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@11", question.Difficulty);
-                command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@12", question.Remark);
-                command.Parameters.Add(parameter);
-                parameter = new MySqlParameter("@13", question.Score);
-                command.Parameters.Add(parameter);
-                command.CommandType = System.Data.CommandType.Text;
-                command.CommandTimeout = 10;
-                await connection.OpenAsync();
-
-                var result = await command.ExecuteNonQueryAsync();
-                connection.Close();
-                return result == 0 ? true : false;
+                result = await InsertRow(item);
             }
-
+            else if (row.Answers != item.Answers)
+            {
+                result = await UpdateRow(item);
+            }
+            else result = true;
+            return result;
         }
     }
 }

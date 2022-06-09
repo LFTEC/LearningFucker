@@ -920,7 +920,7 @@ namespace LearningFucker
 
                 result = await response.Content.ReadAsStringAsync();
                 Logger.Information("GET response: {content}", result);
-                dynamic obj = JsonConvert.DeserializeObject(result);
+                dynamic obj = JsonConvert.DeserializeObject(result);        
                 if (obj.state != "success")
                     throw new Exception("接口返回数据异常!");
 
