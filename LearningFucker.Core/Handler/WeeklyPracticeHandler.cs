@@ -35,7 +35,7 @@ namespace LearningFucker.Handler
                     return;
                 }
 
-                DataContext dataContext = new DataContext();
+                QuestionHandler dataContext = new QuestionHandler();
 
                 var practiceList = await Fucker.GetWeeklyPracticeList();
                 var list = practiceList?.list[0];
@@ -92,21 +92,13 @@ namespace LearningFucker.Handler
         {
             try
             {
-                DataContext dataContext = new DataContext();
+                QuestionHandler dataContext = new QuestionHandler();
 
                 if (await Fucker.ReviewResult(result))
                 {
                     foreach (var item in result.Questions)
                     {
-                        var row = await dataContext.GetRow(item.TmID);
-                        if (row == null)
-                        {
-                            await dataContext.InsertRow(item);
-                        }
-                        else if(row.Answers != item.Answers)
-                        {
-                            await dataContext.UpdateRow(item);
-                        }
+                        await dataContext.WriteData(item);
                         
                     }
                 }

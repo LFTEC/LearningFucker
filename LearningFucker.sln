@@ -1,13 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29230.47
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearningFucker", "LearningFucker\LearningFucker.csproj", "{4CC9AA6E-C9CF-4FF6-B088-45C1C863AD42}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearningFucker.Core", "LearningFucker.Core\LearningFucker.Core.csproj", "{87572F50-B55F-4F8D-9C9D-157686CFEBC4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LearningFucker.Core", "LearningFucker.Core\LearningFucker.Core.csproj", "{87572F50-B55F-4F8D-9C9D-157686CFEBC4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearningFucker.Console", "LearningFucker.Console\LearningFucker.Console.csproj", "{C03F942B-3FEE-4769-9CD7-C6475DD3A27F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LearningFucker.Console", "LearningFucker.Console\LearningFucker.Console.csproj", "{C03F942B-3FEE-4769-9CD7-C6475DD3A27F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestionLibrary", "QuestionLibrary\QuestionLibrary.csproj", "{799FEA7D-EA24-4539-89B6-55AE738C26E1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject1", "TestProject1\TestProject1.csproj", "{09B549C9-98C8-4EE3-B85F-2A751A8221C8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +31,14 @@ Global
 		{C03F942B-3FEE-4769-9CD7-C6475DD3A27F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C03F942B-3FEE-4769-9CD7-C6475DD3A27F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C03F942B-3FEE-4769-9CD7-C6475DD3A27F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{799FEA7D-EA24-4539-89B6-55AE738C26E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{799FEA7D-EA24-4539-89B6-55AE738C26E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{799FEA7D-EA24-4539-89B6-55AE738C26E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{799FEA7D-EA24-4539-89B6-55AE738C26E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09B549C9-98C8-4EE3-B85F-2A751A8221C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09B549C9-98C8-4EE3-B85F-2A751A8221C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09B549C9-98C8-4EE3-B85F-2A751A8221C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09B549C9-98C8-4EE3-B85F-2A751A8221C8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

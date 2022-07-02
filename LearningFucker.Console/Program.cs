@@ -11,6 +11,8 @@ using System.Threading;
 using ConsoleTables;
 using Serilog;
 using Serilog.Sinks.Elasticsearch;
+using System.Runtime.InteropServices;
+using Newtonsoft.Json;
 
 namespace LearningFucker.Console
 {
@@ -35,9 +37,9 @@ namespace LearningFucker.Console
 
                 Settings dealer = new Settings();
 
-                dealer.InitConfig();
+                //dealer.InitConfig();
 
-                Parser.Default.ParseArguments<AddUser, List, Study, Learn>(args)
+                Parser.Default.ParseArguments<AddUser, List, Study, Learn, RemoveUser>(args)
                     .WithParsed<AddUser>(options =>
                     {
                         var userId = options.UserName;
@@ -55,16 +57,16 @@ namespace LearningFucker.Console
                             var login = job.LoginAsync().Result;
                             if (login)
                             {
-                                dealer.SavePassword(userId, password);
+                                dealer.SaveJsonUser(userId, password);
 
-                            //await dealer.Worker.Init();
+                                //await dealer.Worker.Init();
 
-                            System.Console.WriteLine($"add user: {userId} succeed!");
+                                System.Console.WriteLine($"add user: {userId} succeed!");
 
-                            //var taskList = new List<int>();
-                            //taskList.Add(14);
-                            //Worker.StartWork(taskList, false);
-                        }
+                                //var taskList = new List<int>();
+                                //taskList.Add(14);
+                                //Worker.StartWork(taskList, false);
+                            }
                             else
                             {
                                 System.Console.WriteLine("username or password incorrect!");
@@ -73,7 +75,14 @@ namespace LearningFucker.Console
                     })
                     .WithParsed<RemoveUser>(options =>
                     {
+                        var userId = options.UserName.Trim();
+                        if(string.IsNullOrEmpty(userId))
+                        {
+                            System.Console.WriteLine("username incorrect!");
+                            return;
+                        }
 
+                        dealer.RemoveJsonUser(userId);
                     })
                     .WithParsed<List>(async options =>
                     {
@@ -237,7 +246,7 @@ namespace LearningFucker.Console
         static async Task GetJobList()
         {
             Settings dealer = new Settings();
-            var users = dealer.ReadUsers();
+            var users = dealer.ReadJsonUsers();
             if(users.Count == 0)
             {
                 System.Console.WriteLine("please add user first!");
@@ -321,10 +330,11 @@ namespace LearningFucker.Console
         public string Password { get; set; }
     }
      
-    [Verb("removeuser", HelpText = "remove user")]
+    [Verb("remove", HelpText = "remove user")]
     class RemoveUser
     {
-
+        [Option('u', "user", HelpText = "user name", Required = true)]
+        public string UserName { get; set; }
     }
 
     [Verb("list", HelpText = "list what you want")]
@@ -363,12 +373,24 @@ namespace LearningFucker.Console
     {
         public Settings()
         {
-            Config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            //Config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                path = "/etc/lf";
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                path = System.Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\lf";
+            else
+                throw new Exception("不受支持的操作系统");
+
+            if(!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            path = Path.Join(path, "config.json");
         }
 
         public Configuration Config { get; set; }
         private const string KEY = "jcflRWUJqAs=";
         private const string IV = "hBoIpG2rhqE=";
+        private string path;
 
         public void SavePassword(string userId, string password)
         {
@@ -391,6 +413,63 @@ namespace LearningFucker.Console
 
             Config.Save(ConfigurationSaveMode.Modified);
             ConfigurationManager.RefreshSection("UserCredential");
+        }
+
+        public void SaveJsonUser(string userId, string password)
+        {
+            SymmetricAlgorithm sa = DES.Create();
+            sa.Key = Convert.FromBase64String(KEY);
+            sa.IV = Convert.FromBase64String(IV);
+            byte[] content = Encoding.UTF8.GetBytes(password);
+
+            var ms = new MemoryStream();
+            var cs = new CryptoStream(ms, sa.CreateEncryptor(), CryptoStreamMode.Write);
+            cs.Write(content, 0, content.Length);
+            cs.FlushFinalBlock();
+            var cryPassword = Convert.ToBase64String(ms.ToArray());
+
+            var users = this.ReadConfigFile();
+            var user = users.FirstOrDefault(s=>s.name == userId);
+            if (user.name == null)
+                users.Add((userId, cryPassword));
+            else
+            {
+                users.Remove(user);
+                users.Add((userId, cryPassword));
+            }
+
+            var str = JsonConvert.SerializeObject(users);
+            Stream stream = new FileStream(path, FileMode.Create);
+            StreamWriter sw = new StreamWriter(stream);
+            sw.Write(str);
+            sw.Flush();
+            sw.Close();
+            sw.Dispose();
+            stream.Close(); 
+            stream.Dispose(); 
+        }
+
+        public void RemoveJsonUser(string userId)
+        {
+            var users = this.ReadConfigFile();
+            var user = users.FirstOrDefault(s => s.name == userId);
+            if (user.name == null)
+                throw new Exception("user name not exists!");
+            else
+            {
+                users.Remove(user);
+            }
+
+            var str = JsonConvert.SerializeObject(users);
+            Stream stream = new FileStream(path, FileMode.Create);
+            StreamWriter sw = new StreamWriter(stream);
+            
+            sw.Write(str);
+            sw.Flush();
+            sw.Close();
+            sw.Dispose();
+            stream.Close();
+            stream.Dispose();
         }
 
         public List<(string name,string password)> ReadUsers()
@@ -438,6 +517,60 @@ namespace LearningFucker.Console
             }
 
 
+        }
+
+        public List<(string name, string password)> ReadJsonUsers()
+        {
+            try
+            {
+                SymmetricAlgorithm sa = DES.Create();
+                sa.Key = Convert.FromBase64String(KEY);
+                sa.IV = Convert.FromBase64String(IV);
+
+                var users = this.ReadConfigFile();
+                List<(string name, string password)> deUsers = new List<(string name, string password)>();
+                users.ForEach(x =>
+                {
+                    string cryPassword = x.password;
+                    byte[] content = Convert.FromBase64String(cryPassword);
+                    var ms = new MemoryStream();
+                    var cs = new CryptoStream(ms, sa.CreateDecryptor(), CryptoStreamMode.Write);
+
+                    cs.Write(content, 0, content.Length);
+                    cs.FlushFinalBlock();
+                    var password = Encoding.UTF8.GetString(ms.ToArray());
+                    deUsers.Add((x.name, password));
+                });
+
+                return deUsers;
+
+            }
+            catch (Exception ex)
+
+            {
+                return null;
+            }
+
+
+        }
+
+        private List<(string name, string password)> ReadConfigFile()
+        {
+            if (!File.Exists(path))
+            {
+                return new List<(string name, string password)>();
+            }
+
+            Stream stream = File.OpenRead(path);
+            StreamReader sr = new StreamReader(stream);
+            var usersData = sr.ReadToEnd();
+
+            var users = JsonConvert.DeserializeObject<List<(string name, string password)>>(usersData);
+            sr.Close();
+            sr.Dispose();
+            stream.Close();
+            stream.Dispose();
+            return users??new List<(string name, string password)>();
         }
 
         public void InitConfig()

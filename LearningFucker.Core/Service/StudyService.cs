@@ -164,7 +164,7 @@ namespace LearningFucker.Service
         {
             try
             {
-                DataContext dataContext = new DataContext();
+                QuestionHandler dataContext = new QuestionHandler();
                 List<Answer> answers = new List<Answer>();
                 int allowCount = (int)(exam.ExamDetail.MaxExamCount * 0.8);
                 int testedCount = exam.ExamDetail.JoinCount;
@@ -229,20 +229,12 @@ namespace LearningFucker.Service
         {
             try
             {
-                DataContext dataContext = new DataContext();
+                QuestionHandler dataContext = new QuestionHandler();
                 if (await fucker.ReviewPaper(result, exam))
                 {
                     foreach (var item in result.Questions)
                     {
-                        var row = await dataContext.GetRow(item.TmID);
-                        if (row == null)
-                        {
-                            await dataContext.InsertRow(item);
-                        }
-                        else if (row.Answers != item.Answers)
-                        {
-                            await dataContext.UpdateRow(item);
-                        }
+                        await dataContext.WriteData(item);
                     }
                 }
             }
@@ -256,20 +248,12 @@ namespace LearningFucker.Service
         {
             try
             {
-                DataContext dataContext = new DataContext();
+                QuestionHandler dataContext = new QuestionHandler();
                 if (await fucker.ReviewExercise(result))
                 {
                     foreach (var item in result.Questions)
                     {
-                        var row = await dataContext.GetRow(item.TmID);
-                        if (row == null)
-                        {
-                            await dataContext.InsertRow(item);
-                        }
-                        else if (row.Answers != item.Answers)
-                        {
-                            await dataContext.UpdateRow(item);
-                        }
+                        await dataContext.WriteData(item);
                     }
                 }
             }
