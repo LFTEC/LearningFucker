@@ -9,9 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LearningFucker.Core", "Lear
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LearningFucker.Console", "LearningFucker.Console\LearningFucker.Console.csproj", "{C03F942B-3FEE-4769-9CD7-C6475DD3A27F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestionLibrary", "QuestionLibrary\QuestionLibrary.csproj", "{799FEA7D-EA24-4539-89B6-55AE738C26E1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuestionLibrary", "QuestionLibrary\QuestionLibrary.csproj", "{799FEA7D-EA24-4539-89B6-55AE738C26E1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject1", "TestProject1\TestProject1.csproj", "{09B549C9-98C8-4EE3-B85F-2A751A8221C8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestProject1", "TestProject1\TestProject1.csproj", "{09B549C9-98C8-4EE3-B85F-2A751A8221C8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
