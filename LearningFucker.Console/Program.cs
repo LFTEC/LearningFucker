@@ -173,17 +173,20 @@ namespace LearningFucker.Console
                             var task = job.Worker.StartWork(studyList, false);
 
                             tasks.Add(task);
-                        //task.Start();
+                            //task.Start();
 
-
-                        job.Worker.TaskRefresed += sender =>
+                            if (!options.NoLog)
                             {
-                                BuildStudyTable();
-                            };
-
+                                job.Worker.TaskRefresed += sender =>
+                                {
+                                    BuildStudyTable();
+                                };                                
+                            }
                         }
 
-                        BuildStudyTable();
+                        if(!options.NoLog)
+                            BuildStudyTable();
+
                         Task.WaitAll(tasks.ToArray());
                     })
                     .WithParsed<Learn>(options =>
@@ -221,10 +224,9 @@ namespace LearningFucker.Console
         static void BuildStudyTable()
         {
             var table = new ConsoleTable("user", "task", "required", "integral");
-
             foreach (var job in JobList)
             {
-                
+                if (job.StudyList == null) continue;
                 foreach (var item in job.StudyList)
                 {
                     var t = job.Worker.TaskList.FirstOrDefault(s => s.TaskType == item);
@@ -360,6 +362,9 @@ namespace LearningFucker.Console
 
         [Option("tasks", Separator = ';', HelpText = "tasks which you want to learn", SetName = "task")]
         public IEnumerable<int> Tasks { get; set; }
+
+        [Option("nolog", Default = false)]
+        public bool NoLog { get; set; }
     }
 
     [Verb("learn", HelpText = "Learn specific course.")]

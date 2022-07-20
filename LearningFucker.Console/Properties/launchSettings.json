@@ -2,7 +2,7 @@
   "profiles": {
     "LearningFucker.Console": {
       "commandName": "Project",
-      "commandLineArgs": "removeuser -u 00007291"
+      "commandLineArgs": "study"
     }
   }
 }
