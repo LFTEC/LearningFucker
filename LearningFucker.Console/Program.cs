@@ -180,12 +180,13 @@ namespace LearningFucker.Console
                                 job.Worker.TaskRefresed += sender =>
                                 {
                                     BuildStudyTable();
-                                };
-
-                                BuildStudyTable();
+                                };                                
                             }
                         }
-                        
+
+                        if(!options.NoLog)
+                            BuildStudyTable();
+
                         Task.WaitAll(tasks.ToArray());
                     })
                     .WithParsed<Learn>(options =>
@@ -223,10 +224,9 @@ namespace LearningFucker.Console
         static void BuildStudyTable()
         {
             var table = new ConsoleTable("user", "task", "required", "integral");
-
             foreach (var job in JobList)
             {
-                
+                if (job.StudyList == null) continue;
                 foreach (var item in job.StudyList)
                 {
                     var t = job.Worker.TaskList.FirstOrDefault(s => s.TaskType == item);
