@@ -19,6 +19,7 @@
   .\lf license
 ```
 软件会返回授权申请码，请复制该授权码并在本仓库的Discussions中上传。收到回复后可进行后面的激活操作。
+> 在ps和cmd中，复制是点击鼠标右键，不能使用Ctrl+C
 ![image](https://github.com/LFTEC/LearningFucker/assets/39933692/ac5060ec-cf12-477a-a85e-dfbc8107f4ce)
 
 
