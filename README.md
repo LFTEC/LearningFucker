@@ -1,3 +1,6 @@
+**v2.0.0已经发布，适配全新APP**
+https://github.com/LFTEC/LearningFucker/releases/tag/v2.0.0
+
 # LearningFucker
 万华学习平台挂学分
 
