@@ -96,6 +96,10 @@ https://github.com/LFTEC/LearningFucker/releases/tag/v2.0.0
 ### 自动挂学分
 程序会自动判断每个用户当前未完成的任务项，按顺序依次进行学习，考试，答题，PK等。
 
+``` shell
+  lf study
+```
+
 # 更新日志
 ## Date: 2023-7-12
 v2.0.1 Preview
