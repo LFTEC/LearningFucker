@@ -1,7 +1,7 @@
 **v2.1.0已经发布，优化精简指令，并增加自助激活功能**
 https://github.com/LFTEC/LearningFucker/releases/tag/v2.1.0
 
-请先下载新版本程序替换老版本，然后到https://id.lefu.io进行自助激活
+请先下载新版本程序替换老版本，然后到https://id.lefu.io 进行自助激活
 
 **Cli命令进行了部分优化，并对界面进行了部分修改**
 # Cli使用方法
@@ -17,7 +17,7 @@ https://github.com/LFTEC/LearningFucker/releases/tag/v2.1.0
 
 > 请确保你的GITHUB账号已对该项目进行加星，否则无法激活
 
-软件会返回授权申请码，请复制该申请码（不要复制首尾带===标志的行），到网站https://id3.lefu.io进行激活。
+软件会返回授权申请码，请复制该申请码（不要复制首尾带===标志的行），到网站https://id3.lefu.io 进行激活。
 
 ![image](https://github.com/LFTEC/LearningFucker/assets/39933692/0ea8ab2c-af15-40f3-aa08-d56586399463)
 
