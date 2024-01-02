@@ -1,3 +1,89 @@
+**v2.1.0已经发布，优化精简指令，并增加自助激活功能**
+https://github.com/LFTEC/LearningFucker/releases/tag/v2.1.0
+
+请先下载新版本程序替换老版本，然后到https://id.lefu.io进行自助激活
+
+**Cli命令进行了部分优化，并对界面进行了部分修改**
+# Cli使用方法
+## 激活
+为防止滥用，及意外的复制与传递，软件引入了激活机制，仅授权的PC可以使用该软件。
+
+### 申请授权
+
+下载软件后，使用powershell或者cmd，执行如下命令申请授权码。**请输入你在github上注册的账号进行授权**。
+``` powershell
+  .\lf license
+```
+
+> 请确保你的GITHUB账号已对该项目进行加星，否则无法激活
+
+软件会返回授权申请码，请复制该申请码（不要复制首尾带===标志的行），到网站https://id3.lefu.io进行激活。
+
+![image](https://github.com/LFTEC/LearningFucker/assets/39933692/0ea8ab2c-af15-40f3-aa08-d56586399463)
+
+
+> 在ps和cmd中，复制是点击鼠标右键，不能使用Ctrl+C
+
+
+![image](https://github.com/LFTEC/LearningFucker/assets/39933692/ac5060ec-cf12-477a-a85e-dfbc8107f4ce)
+
+
+### 激活
+在网站申请到激活码后，在ps或cmd中运行如下代码激活
+``` powershell
+  .\lf activate 你收到的激活码
+```
+如果程序返回激活成功，并显示有效期，则在有效期内可以使用该软件。超过有效期后请再次申请授权。
+> 每次激活默认可使用两个周，到期后需再次激活。激活时需注意，你使用的版本号不能低于激活版本号。
+
+Cli中输入`.\lf --version`可以查看你当前使用的版本
+
+## 命令使用方法
+### 添加和删除用户
+```bash
+  # 添加用户
+  lf adduser -u <用户账户> -p <密码>
+```
+
+```bash
+  # 删除用户
+  lf remove <用户账户>
+```
+
+### 查询
+
+```bash
+  # 查询用户基本信息
+  lf list user
+```
+
+```bash
+  # 查询本周任务完成情况
+  lf list task
+```
+
+```bash
+  # 查询本周必修课清单
+  lf list course
+```
+
+### 必修课程学习
+应对每周要求的必修课程学习，可以指定具体的课程进行学习。如果有考试，在学习完成后自动进行考试。自动考试最多会考允许考试次数的80%，超出将不再进行考试。如果自动考试未通过请自己完成考试。
+
+```bash
+  # 必修课程学习
+  lf learn <课程编号>
+```
+> 课程编号可通过查询必修课程清单命令获取
+
+### 自动挂学分
+程序会自动判断每个用户当前未完成的任务项，按顺序依次进行学习，考试，答题，PK等。
+
+``` shell
+  lf study
+```
+
+
 **v2.0.0已经发布，适配全新APP**
 https://github.com/LFTEC/LearningFucker/releases/tag/v2.0.0
 
